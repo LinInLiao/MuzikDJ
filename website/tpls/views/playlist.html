@@ -1,0 +1,39 @@
+<div class="mdl-grid m-section__header">
+    <section class="mdl-cell mdl-cell--10-col mdl-cell--4-col-phone m-section__header">
+        <h1 class="e-slogan m-inline--align-center color--light-blue">Anonymous</h1>
+    </section>
+</div>
+<div class="mdl-grid">
+    <section class="mdl-cell mdl-cell--10-col mdl-cell--4-col-phone m-box--align-center">
+    	<form class="m-add-url__form" action="#">
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input m-font__lato--thin" type="url" id="url" pattern="^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?" ng-model="url">
+                <label class="mdl-textfield__label m-font__lato--thin" for="url">Youtube URL</label>
+            </div>
+            <span class="s-error-message m-font__lato--thin" ng-if="error === 'url'">URL is invalid.</span>
+            <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect m-button--full-transparent m-font__lato--thin" type="button" ng-click="add()">Add To Playlist</button>
+        </form>
+    </section>
+
+    <section class="mdl-cell mdl-cell--8-col mdl-cell--12-col-phone m-box--align-center">
+    	<table class="mdl-data-table mdl-js-data-table room-playlist__table">
+          <thead>
+            <tr>
+              <th class="mdl-data-table__cell--non-numeric color--light-blue m-font__lato--thin song-cover">Cover</th>
+              <th class="mdl-data-table__cell--non-numeric color--light-blue m-font__lato--thin song-title">Title</th>
+              <th class="color--light-blue m-font__lato--thin song-dj">DJ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="song {{ playingStatus.id === song.id ? 'playing' : '' }}" ng-click="play($event, $index)" ng-repeat="song in songs track by $index">
+              <td class="mdl-data-table__cell--non-numeric song-cover" style="background-image: url({{ song.cover }});">
+                  <i class="mdi {{ playingStatus.id === song.id ? 'mdi-play-circle color--light-blue' : 'mdi-pause-circle' }} icon--floating"></i>
+              </td>
+              <td class="mdl-data-table__cell--non-numeric m-font__lato--thin song-title">{{ song.name }}</td>
+              <td class="m-font__lato--thin song-dj">{{ song.dj }}</td>
+            </tr>
+          </tbody>
+        </table>
+    </section>
+    <youtube-video video-url="youtubeUrl" player-vars="youtubePlayerVars" player="youtubePlayer" style="display:none;width:0px;height:0px;"></youtube-video>
+</div>

@@ -1,0 +1,19 @@
+<div class="mdl-layout__header-row">
+      <a href="/"><img class="mdl-layout-title" src="assets/images/logo.svg"></a>
+      <div class="mdl-layout-spacer"></div>
+      <nav class="mdl-navigation">
+            <a class="mdl-navigation__link m-font__lato--thin" ng-if="user.login !== true" href="/login"><span class="color--light-blue">Login</span></a>
+            <a class="mdl-navigation__link m-font__lato--thin" ng-if="user.login !== true" href="/signup"><span class="color--light-blue">Sign up</span></a>
+            <div class="mdl-navigation__link m-font__lato--thin user__name" ng-if="user.login === true">
+                <span class="m-font__lato--thin color--light-blue" ng-bind="user.name"></span>
+                <div class="user__menu">
+                    <ul>
+                        <li><a class="m-font__lato--thin color--light-blue" href="/account/edit">Edit Account</a></li>
+                        <li><a class="m-font__lato--thin color--light-blue" href="/account/favorite">My Favorite</a></li>
+                        <li><a class="m-font__lato--thin color--light-blue" href="/account/rooms">My Rooms</a></li>
+                        <li><a class="m-font__lato--thin color--light-blue" href="/logout">Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+      </nav>
+</div>

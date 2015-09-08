@@ -1,0 +1,18 @@
+<div class="mdl-grid m-section__header">
+    <section class="mdl-cell mdl-cell--10-col mdl-cell--4-col-phone m-section__header">
+        <h1 class="e-slogan m-inline--align-center m-font__lato--thin color--light-blue">Search Room</h1>
+        <form class="m-join-room__form">
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="text" id="search" ng-model="keyword">
+                <label class="mdl-textfield__label" for="search">Room's name</label>
+            </div>
+            <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect m-button--full-transparent" type="button" ng-click="search()">Search</button>
+            <br>
+            <span class="s-error-message m-font__lato--thin" ng-if="error === 'keyword'">Room name is required.</span>
+        </form>
+    </section>
+</div>
+
+<div class="mdl-grid">
+    <section class="mdl-cell mdl-cell--4-col mdl-cell--12-col-phone" ng-repeat="room in rooms track by $index" ng-include="'tpls/partials/rooms.html'"></section>
+</div>

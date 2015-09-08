@@ -1,0 +1,24 @@
+<div class="mdl-grid">
+    <section class="mdl-cell mdl-cell--3-col mdl-cell--4-col-tablet mdl-cell--12-col-phone m-box--align-center">
+        <form class="m-signup__form">
+            <h2 class="e-slogan color--light-blue m-font__lato--thin">Sign Up</h2>
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input m-font__lato--thin" type="text" id="name" pattern="[a-z,A-Z,0-9 ]*" ng-model="username">
+                <label class="mdl-textfield__label m-font__lato--thin" for="name">Name</label>
+            </div>
+            <span class="s-error-message m-font__lato--thin" ng-if="error === 'username'">Name is required.</span>
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input m-font__lato--thin" type="email" id="email" pattern="[^@]+@[^@]+\.[a-zA-Z]{2,6}" ng-model="email">
+                <label class="mdl-textfield__label m-font__lato--thin" for="email">Email</label>
+            </div>
+            <span class="s-error-message m-font__lato--thin" ng-if="error === 'email'">E-mail is required.</span>
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input m-font__lato--thin" type="password" id="password" ng-model="password">
+                <label class="mdl-textfield__label m-font__lato--thin" for="password">Password</label>
+            </div>
+            <span class="s-error-message m-font__lato--thin" ng-if="error === 'password'">Password is required.</span>
+            <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect m-button--full-transparent m-font__lato--thin" type="button" ng-click="signup()">Signup</button>
+            <p class="e-description m-font__lato--thin"><a href="/login">Already have an account?</a></p>
+        </form>
+    </section>
+</div>
