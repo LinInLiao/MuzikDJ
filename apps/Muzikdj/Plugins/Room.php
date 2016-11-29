@@ -2,8 +2,8 @@
 
 namespace Muzikdj\Muzikdj\Plugins;
 
-use \Ratchet\Wamp\WampServerInterface,
-    \Ratchet\ConnectionInterface;
+use \Ratchet\Wamp\WampServerInterface;
+use \Ratchet\ConnectionInterface;
 
 final class Room implements WampServerInterface {
     protected $subscribedTopics = array();

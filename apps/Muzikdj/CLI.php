@@ -20,16 +20,6 @@ define('YOUTUBE_API_KEY', getenv('YOUTUBE_API_KEY'));
 require (ROOT . DS .'vendor'. DS .'autoload.php');
 
 $loader = new \Phalcon\Loader();
-$loader->registerDirs(
-    array(
-        ROOT . DS . 'library',
-        ROOT . DS . 'models',
-        ROOT . DS . 'plugins',
-        APPLICATION_PATH . DS . 'Plugins',
-        APPLICATION_PATH . DS . 'Tasks',
-    )
-);
-
 $loader->registerNamespaces(array(
     'Muzikdj\Library' => ROOT . DS . 'library',
     'Muzikdj\Models' => ROOT . DS . 'models',

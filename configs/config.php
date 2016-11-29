@@ -1,0 +1,50 @@
+<?php
+
+return [
+	'database' => [
+		'development' => [
+			'dbhost' => '127.0.0.1',
+			'dbusername' => 'root',
+			'dbpassword' => 'caline0125',
+			'dbname' => 'muzikdj'
+		],
+		'staging' => [
+			'dbhost' => '127.0.0.1',
+			'dbusername' => 'root',
+			'dbpassword' => 'caline0125',
+			'dbname' => 'muzikdj'
+		],
+		'production' => [
+			'dbhost' => '127.0.0.1',
+			'dbusername' => 'root',
+			'dbpassword' => 'caline0125',
+			'dbname' => 'muzikdj'
+		]
+	],
+	'whitelist' => [
+		'name' => '#(api|create|delete|save|hinablue|hinachen|hana|hina|ajax|post|get|remove|add)#i'
+	],
+	'logger' => [
+		'folder' => 'logs',
+		'level' => \Phalcon\Logger::ERROR
+	],
+	'metadata' => [
+		'adapter' => 'Apc',
+		'suffix' => 'muzikdj',
+		'lifetime' => 86400
+	],
+	'memcached' => [
+		'host' => 'localhost',
+		'port' => 11211,
+		'prefix' => 'muzikdj',
+		'lifetime' => 8600,
+		'persistent' => 'MuzikDJ'
+
+	],
+	'cookie' => [
+		'crypt' => '9(*&^%$muzikdjERfgfghjk',
+		'secure' => false,
+		'httponly' => false,
+		'lifetime' => 86400
+	]
+];

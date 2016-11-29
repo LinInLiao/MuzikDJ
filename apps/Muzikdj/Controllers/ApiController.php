@@ -2,16 +2,16 @@
 
 namespace Muzikdj\Muzikdj\Controllers;
 
-use Muzikdj\Plugins\UUID,
-    Muzikdj\Plugins\Slug,
-    Muzikdj\Models\Playlist,
-    Muzikdj\Models\RoomPlaylist,
-    Muzikdj\Models\Rooms,
-    Muzikdj\Models\SongPlaylist,
-    Muzikdj\Models\Songs,
-    Muzikdj\Models\UserPlaylist,
-    Muzikdj\Models\UserRoom,
-    Muzikdj\Models\Users;
+use Muzikdj\Plugins\UUID;
+use Muzikdj\Plugins\Slug;
+use Muzikdj\Models\Playlist;
+use Muzikdj\Models\RoomPlaylist;
+use Muzikdj\Models\Rooms;
+use Muzikdj\Models\SongPlaylist;
+use Muzikdj\Models\Songs;
+use Muzikdj\Models\UserPlaylist;
+use Muzikdj\Models\UserRoom;
+use Muzikdj\Models\Users;
 
 final class ApiController extends \Phalcon\Mvc\Controller {
 

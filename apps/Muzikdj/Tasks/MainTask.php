@@ -1,9 +1,9 @@
 <?php
 
-use \Ratchet\Server\IoServer,
-    \Ratchet\Http\HttpServer,
-    \Ratchet\Wamp\WampServer,
-    Muzikdj\Muzikdj\Plugins\Room;
+use \Ratchet\Server\IoServer;
+use \Ratchet\Http\HttpServer;
+use \Ratchet\Wamp\WampServer;
+use Muzikdj\Muzikdj\Plugins\Room;
 
 final class MainTask extends \Phalcon\CLI\Task {
 

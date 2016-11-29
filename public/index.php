@@ -30,14 +30,13 @@ use \Phalcon\Config\Adapter\Ini as configIniAdapter,
  */
 $di = new \Phalcon\DI\FactoryDefault();
 
-$config = new configIniAdapter(ROOT . DS .'configs'. DS .'config.ini');
-$di->set('config', $config, true);
+$config = new \Phalcon\Config\Adapter\Php(ROOT . DS .'configs'. DS .'config.php');
+$di->setShared('config', $config);
 
 /**
  * Whoops with phalcon DI
  */
 $whoops = new \Whoops\Provider\Phalcon\WhoopsServiceProvider($di);
-// $di->set('whoops', $whoops);
 
 try {
     /**
@@ -48,7 +47,7 @@ try {
         mkdir($loggerFolder, 0777, true);
     }
     $logger = new \Phalcon\Logger\Adapter\File($loggerFolder . DS . SITENAME . '.log');
-    $logger->setLogLevel(\Phalcon\Logger::ERROR);
+    $logger->setLogLevel($config->logger->level);
     $di->setShared('logger', $logger);
     unset($loggerFolder);
 
@@ -68,16 +67,16 @@ try {
     /**
      * Set the global encryption key.
      */
-    $di->set('crypt', function() use ($config) {
+    $di->setShared('crypt', function() use ($config) {
         $crypt = new \Phalcon\Crypt();
         $crypt->setKey($config->cookie->crypt);
 
         return $crypt;
-    }, true);
+    });
     /**
      * Database connection is created based in the parameters defined in the configuration file
      */
-    $di->set('db', function() use ($config) {
+    $di->setShared('db', function() use ($config) {
         $db_config = $config->database[ENVIRONMENT];
         return new DbAdapter(array(
             'host'      => $db_config->dbhost,
@@ -85,28 +84,28 @@ try {
             'password'  => $db_config->dbpassword,
             'dbname'    => $db_config->dbname
         ));
-    }, true);
+    });
 
     /**
      * If the configuration specify the use of metadata adapter use it or use memory otherwise
      */
-    $di->set('modelsMetadata', function() use ($config) {
+    $di->setShared('modelsMetadata', function() use ($config) {
         if (isset($config->metadata) && ENVIRONMENT === 'production') {
             $metadataAdapter = 'Metadata\\' . $config->metadata->adapter;
             return new $metadataAdapter();
         }
         return new Metadata\Memory();
-    }, true);
+    });
 
     /**
      * Start the session the first time some component request the session service
      */
-    $di->set('cookies', function() use ($config) {
+    $di->setShared('cookies', function() use ($config) {
         $cookies = new \Phalcon\Http\Response\Cookies();
         return $cookies;
-    }, true);
+    });
 
-    $di->set('session', function() use ($config) {
+    $di->setShared('session', function() use ($config) {
         $session = new Session(array(
             'servers' => array(array(
                 'host' => $config->memcached->host,
@@ -138,34 +137,34 @@ try {
             $session->start();
         }
         return $session;
-    }, true);
+    });
 
     /**
      * Security
      */
-    $di->set('security', function() use ($config) {
+    $di->setShared('security', function() use ($config) {
         $security = new \Phalcon\Security();
         $security->setWorkFactor(12);
         return $security;
-    }, true);
+    });
 
     /**
      * Router
      */
-    $di->set('router', function() {
+    $di->setShared('router', function() {
         require ROOT . DS . 'configs' . DS . 'routes.php';
         return $router;
-    }, true);
+    });
 
-    $di->set('url', function() {
+    $di->setShared('url', function() {
         return new \Phalcon\Mvc\Url();
-    }, true);
+    });
 
-    $di->set('view', function() use ($di, $config) {
+    $di->setShared('view', function() use ($di, $config) {
         $view = new \Phalcon\Mvc\View\Simple();
         $view->setViewsDir(ROOT . DS . 'apps' . DS . SITENAME . DS . 'Views' . DS);
         return $view;
-    }, true);
+    });
 
     $eventsManager = new \Phalcon\Events\Manager();
 
@@ -190,7 +189,7 @@ try {
     echo $application->handle()->getContent();
 } catch (\Phalcon\Mvc\Dispatcher\Exception $e) {
     if (isset($logger)) {
-        $logger->error($e->getMessage()."\n".$e->getTraceAsString()."\n");
+        $logger->error($e->getMessage().PHP_EOL.$e->getTraceAsString().PHP_EOL);
     }
     if (ENVIRONMENT !== 'production') {
         $di['whoops']->handleException($e);
@@ -198,7 +197,7 @@ try {
     }
 } catch (\Phalcon\Exception $e) {
     if (isset($logger)) {
-        $logger->error($e->getMessage()."\n".$e->getTraceAsString()."\n");
+        $logger->error($e->getMessage().PHP_EOL.$e->getTraceAsString().PHP_EOL);
     }
     if (ENVIRONMENT !== 'production') {
         $di['whoops']->handleException($e);
@@ -206,7 +205,7 @@ try {
     }
 } catch (\PDO\Exception $e) {
     if (isset($logger)) {
-        $logger->error($e->getMessage()."\n".$e->getTraceAsString()."\n");
+        $logger->error($e->getMessage().PHP_EOL.$e->getTraceAsString().PHP_EOL);
     }
     if (ENVIRONMENT !== 'production') {
         $di['whoops']->handleException($e);
@@ -214,7 +213,7 @@ try {
     }
 } catch (\Exception $e) {
     if (isset($logger)) {
-        $logger->error($e->getMessage()."\n".$e->getTraceAsString()."\n");
+        $logger->error($e->getMessage().PHP_EOL.$e->getTraceAsString().PHP_EOL);
     }
     if (ENVIRONMENT !== 'production') {
         $di['whoops']->handleException($e);

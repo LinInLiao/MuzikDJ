@@ -2,10 +2,10 @@
 
 namespace Muzikdj\Muzikdj\Plugins;
 
-use \Phalcon\Events\Event,
-    \Phalcon\Mvc\Dispatcher,
-    \Phalcon\Http\Request,
-    \Phalcon\Acl;
+use \Phalcon\Events\Event;
+use \Phalcon\Mvc\Dispatcher;
+use \Phalcon\Http\Request;
+use \Phalcon\Acl;
 
 final class Middleware extends \Phalcon\DI\Injectable {
 

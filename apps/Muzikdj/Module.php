@@ -2,17 +2,17 @@
 
 namespace Muzikdj\Muzikdj;
 
-use Muzikdj\Muzikdj\Plugins\Middleware as Middleware,
-    \Phalcon\Dispatcher,
-    \Phalcon\Mvc\Dispatcher as MvcDispatcher,
-    \Phalcon\Mvc\Dispatcher\Exception as DispatchException,
-    \Phalcon\Loader,
-    \Phalcon\Events\Manager,
-    \Phalcon\Cache\Multiple,
-    \Phalcon\Cache\Backend\Apc as ApcCache,
-    \Phalcon\Cache\Backend\File as FileCache,
-    \Phalcon\Cache\Frontend\Data as DataFrontend,
-    \Phalcon\Cache\Backend\Libmemcached as MemcachedCache;
+use Muzikdj\Muzikdj\Plugins\Middleware as Middleware;
+use \Phalcon\Dispatcher;
+use \Phalcon\Mvc\Dispatcher as MvcDispatcher;
+use \Phalcon\Mvc\Dispatcher\Exception as DispatchException;
+use \Phalcon\Loader;
+use \Phalcon\Events\Manager;
+use \Phalcon\Cache\Multiple;
+use \Phalcon\Cache\Backend\Apc as ApcCache;
+use \Phalcon\Cache\Backend\File as FileCache;
+use \Phalcon\Cache\Frontend\Data as DataFrontend;
+use \Phalcon\Cache\Backend\Libmemcached as MemcachedCache;
 
 final class Module {
     public function registerAutoloaders($di) {
@@ -21,11 +21,6 @@ final class Module {
             'Muzikdj\Muzikdj\Controllers' => ROOT . DS . 'apps' . DS . SITENAME . DS . 'Controllers',
             'Muzikdj\Muzikdj\Plugins' => ROOT . DS . 'apps' . DS . SITENAME . DS . 'Plugins',
             'Muzikdj\Muzikdj\Views' => ROOT . DS . 'apps' . DS . SITENAME . DS . 'Views',
-        ));
-        $loader->registerDirs(array(
-            ROOT . DS . 'apps' . DS . SITENAME . DS . 'Controllers',
-            ROOT . DS . 'apps' . DS . SITENAME . DS . 'Plugins',
-            ROOT . DS . 'apps' . DS . SITENAME . DS . 'Views',
         ))->register();
     }
 
