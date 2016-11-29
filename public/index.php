@@ -63,15 +63,6 @@ try {
         'Muzikdj\Library' => ROOT . DS . 'library',
         'Muzikdj\Models' => ROOT . DS . 'models',
         'Muzikdj\Plugins' => ROOT . DS . 'plugins',
-    ));
-
-    /**
-     * Loader registe directories
-     */
-    $loader->registerDirs(array(
-        ROOT . DS . 'library',
-        ROOT . DS . 'models',
-        ROOT . DS . 'plugins',
     ))->register();
 
     /**
@@ -110,16 +101,9 @@ try {
     /**
      * Start the session the first time some component request the session service
      */
-
     $di->set('cookies', function() use ($config) {
         $cookies = new \Phalcon\Http\Response\Cookies();
-        $cookies->useEncryption(true);
-
         return $cookies;
-    }, true);
-
-    $di->set('csrf_session_bag', function() {
-        return new \Phalcon\Session\Bag('CSRF_SESSION_BAG');
     }, true);
 
     $di->set('session', function() use ($config) {
@@ -205,25 +189,33 @@ try {
     $application->useImplicitView(false);
     echo $application->handle()->getContent();
 } catch (\Phalcon\Mvc\Dispatcher\Exception $e) {
-    if (isset($logger)) $logger->error($e->getMessage()."\n".$e->getTraceAsString()."\n");
+    if (isset($logger)) {
+        $logger->error($e->getMessage()."\n".$e->getTraceAsString()."\n");
+    }
     if (ENVIRONMENT !== 'production') {
         $di['whoops']->handleException($e);
         return;
     }
 } catch (\Phalcon\Exception $e) {
-    if (isset($logger)) $logger->error($e->getMessage()."\n".$e->getTraceAsString()."\n");
+    if (isset($logger)) {
+        $logger->error($e->getMessage()."\n".$e->getTraceAsString()."\n");
+    }
     if (ENVIRONMENT !== 'production') {
         $di['whoops']->handleException($e);
         return;
     }
 } catch (\PDO\Exception $e) {
-    if (isset($logger)) $logger->error($e->getMessage()."\n".$e->getTraceAsString()."\n");
+    if (isset($logger)) {
+        $logger->error($e->getMessage()."\n".$e->getTraceAsString()."\n");
+    }
     if (ENVIRONMENT !== 'production') {
         $di['whoops']->handleException($e);
         return;
     }
 } catch (\Exception $e) {
-    if (isset($logger)) $logger->error($e->getMessage()."\n".$e->getTraceAsString()."\n");
+    if (isset($logger)) {
+        $logger->error($e->getMessage()."\n".$e->getTraceAsString()."\n");
+    }
     if (ENVIRONMENT !== 'production') {
         $di['whoops']->handleException($e);
         return;
