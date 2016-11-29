@@ -22,3 +22,16 @@ header.mdl-layout__header.mdl-layout__header--transparent
             li
               a.m-font__lato--thin.color--light-blue(href="/logout") Logout
 </template>
+
+<script>
+export default {
+  data () {
+    return {
+      user: {
+        login: false,
+        name: ''
+      }
+    }
+  }
+}
+</script>
