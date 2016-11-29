@@ -90,6 +90,12 @@ node_modules
 ### Bower ###
 bower_components
 
-cache/*
-vendor/*
+### Composer ###
+vendor
 
+### Builder result ###
+website
+
+cache/*
+
+composer.lock
