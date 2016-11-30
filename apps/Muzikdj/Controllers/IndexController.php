@@ -1,6 +1,6 @@
 <?php
 
-namespace Muzikdj\Muzikdj\Controllers;
+namespace Muzikdj\Api\Controllers;
 
 final class IndexController extends \Phalcon\Mvc\Controller {
 

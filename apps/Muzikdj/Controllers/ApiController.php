@@ -1,6 +1,6 @@
 <?php
 
-namespace Muzikdj\Muzikdj\Controllers;
+namespace Muzikdj\Api\Controllers;
 
 use Muzikdj\Plugins\UUID;
 use Muzikdj\Plugins\Slug;
@@ -15,36 +15,17 @@ use Muzikdj\Models\Users;
 
 final class ApiController extends \Phalcon\Mvc\Controller {
 
-    /**
-     * Application initialize.
-     * @return null
-     */
-	public function initialize() {
-        if ($this->request->isAjax() === false && $this->request->isPost() === false) {
-            $this->responseJson(array(
-                'status' => 'error',
-                'message' => 'Method not allowed.',
-            ), 405);
-        }
-
-        if (count($_POST) === 0) {
-            $ajax = file_get_contents("php://input");
-            $_POST = json_decode($ajax, true);
-            unset($ajax);
-        }
-	}
-
     public function removeRoomAction() {
         $user = $this->session->has('USER') ? $this->session->get('USER') : null;
 
         if (is_null($user)) {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'Need login.',
-            ), 403);
+            ], 403];
         }
 
-        $data = $this->request->getPost();
+        $data = $this->request->getJsonRawBody(true);
 
         $user_room = UserRoom::findFirst(array(
             'conditions' => 'user_id = :user_id: AND room_id = :room_id:',
@@ -155,26 +136,26 @@ final class ApiController extends \Phalcon\Mvc\Controller {
                 }
 
                 $transaction->commit();
-                $this->responseJson(array(
+                return [[
                     'status' => 'ok',
                     'message' => 'Success.',
-                ));
+                ], 200];
             } catch(\Phalcon\Mvc\Model\Transaction\Failed $e) {
-                $this->responseJson(array(
+                return [[
                     'status' => 'error',
                     'message' => 'Data save failed.',
-                ), 405);
+                ], 405];
             } catch(\PDOException $e) {
-                $this->responseJson(array(
+                return [[
                     'status' => 'error',
                     'message' => 'Data save failed.',
-                ), 405);
+                ], 405];
             }
         } else {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'Room not found.',
-            ), 404);
+            ], 404];
         }
     }
 
@@ -182,10 +163,10 @@ final class ApiController extends \Phalcon\Mvc\Controller {
         $user = $this->session->has('USER') ? $this->session->get('USER') : null;
 
         if (is_null($user)) {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'Need login.',
-            ), 403);
+            ], 403];
         }
         $user_rooms = UserRoom::query()
             ->columns(array('r.id, r.name, r.alias, r.status, Muzikdj\Models\UserRoom.user_id AS owner'))
@@ -212,29 +193,29 @@ final class ApiController extends \Phalcon\Mvc\Controller {
                 }
             });
 
-            $this->responseJson(array(
+            return [[
                 'status' => 'ok',
                 'message' => 'Success.',
                 'result' => $user_rooms,
-            ));
+            ], 200];
         } else {
-            $this->responseJson(array(
+            return [[
                 'status' => 'err',
                 'message' => 'Not found.',
-            ), 404);
+            ], 404];
         }
     }
 
     public function accountEditAction() {
-        $data = $this->request->getPost();
+        $data = $this->request->getJsonRawBody(true);
 
         $user = $this->session->has('USER') ? $this->session->get('USER') : null;
 
         if (is_null($user)) {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'Need login.',
-            ), 403);
+            ], 403];
         }
 
         $user = Users::findFirst(array(
@@ -264,39 +245,39 @@ final class ApiController extends \Phalcon\Mvc\Controller {
                 }
 
                 $transaction->commit();
-                $this->responseJson(array(
+                return [[
                     'status' => 'ok',
                     'message' => 'Success.',
-                ));
+                ], 200];
             } catch(\Phalcon\Mvc\Model\Transaction\Failed $e) {
-                $this->responseJson(array(
+                return [[
                     'status' => 'error',
                     'message' => 'Data save failed.',
-                ), 405);
+                ], 405];
             } catch(\PDOException $e) {
-                $this->responseJson(array(
+                return [[
                     'status' => 'error',
                     'message' => 'Data save failed.',
-                ), 405);
+                ], 405];
             }
         } else {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'User not found.',
-            ), 404);
+            ], 404];
         }
     }
 
     public function removeSongAction() {
-        $data = $this->request->getPost();
+        $data = $this->request->getJsonRawBody(true);
 
         $user = $this->session->has('USER') ? $this->session->get('USER') : null;
 
         if (is_null($user)) {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'Need login.',
-            ), 403);
+            ], 403];
         }
 
         $song_playlist = SongPlaylist::query()
@@ -318,10 +299,10 @@ final class ApiController extends \Phalcon\Mvc\Controller {
             $song_playlist = $song_playlist[0];
 
             if (false === in_array($user->id, array($song_playlist['song_user_id'], $song_playlist['room_user_id']), true)) {
-                $this->responseJson(array(
+                return [[
                     'status' => 'error',
                     'message' => 'You can not remove this song.',
-                ), 405);
+                ], 405];
             }
 
             $transaction = $this->transactionManager->get();
@@ -343,31 +324,31 @@ final class ApiController extends \Phalcon\Mvc\Controller {
                     $transaction->rollback();
                 }
                 $transaction->commit();
-                $this->responseJson(array(
+                return [[
                     'status' => 'ok',
                     'message' => 'Success.',
-                ));
+                ], 200];
             } catch(\Phalcon\Mvc\Model\Transaction\Failed $e) {
-                $this->responseJson(array(
+                return [[
                     'status' => 'error',
                     'message' => 'Data save failed.',
-                ), 405);
+                ], 405];
             } catch(\PDOException $e) {
-                $this->responseJson(array(
+                return [[
                     'status' => 'error',
                     'message' => 'Data save failed.',
-                ), 405);
+                ], 405];
             }
         } else {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'Song or Room not found.',
-            ), 404);
+            ], 404];
         }
     }
 
     public function createSongAction() {
-        $data = $this->request->getPost();
+        $data = $this->request->getJsonRawBody(true);
 
         $url = trim($data['url']);
 
@@ -513,7 +494,7 @@ final class ApiController extends \Phalcon\Mvc\Controller {
 
                 $transaction->commit();
 
-                $this->responseJson(array(
+                return [[
                     'status' => 'ok',
                     'message' => 'Success.',
                     'result' => (object) array(
@@ -524,24 +505,25 @@ final class ApiController extends \Phalcon\Mvc\Controller {
                         'sort' => $song->sort,
                         'type' => $song->type,
                         'url' => $song->url,
+                        'userId' => $user->id,
                     ),
-                ));
+                ], 200];
             } catch(\Phalcon\Mvc\Model\Transaction\Failed $e) {
-                $this->responseJson(array(
+                return [[
                     'status' => 'error',
                     'message' => 'Data save failed.',
-                ), 405);
+                ], 405];
             } catch(\PDOException $e) {
-                $this->responseJson(array(
+                return [[
                     'status' => 'error',
                     'message' => 'Data save failed.',
-                ), 405);
+                ], 405];
             }
         } else {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'Room not found.',
-            ), 404);
+            ], 404];
         }
     }
 
@@ -569,16 +551,16 @@ final class ApiController extends \Phalcon\Mvc\Controller {
                 }
             });
 
-            $this->responseJson(array(
+            return [[
                 'status' => 'ok',
                 'message' => 'Success.',
                 'result' => $rooms,
-            ));
+            ], 200];
         } else {
-            $this->responseJson(array(
+            return [[
                 'status' => 'err',
                 'message' => 'Not found.',
-            ), 404);
+            ], 404];
         }
     }
 
@@ -605,16 +587,14 @@ final class ApiController extends \Phalcon\Mvc\Controller {
         } else {
             $songs = array();
         }
-        $this->responseJson(array(
+        return [[
             'status' => 'ok',
             'message' => 'Success.',
             'result' => $songs,
-        ));
+        ], 200];
     }
 
-    public function singleRoomAction() {
-        $room_alias = $this->getParams('alias');
-
+    public function singleRoomAction($room_alias = null) {
         $room = Rooms::findFirst(array(
             'conditions' => 'alias = :alias:',
             'bind' => array(
@@ -646,10 +626,10 @@ final class ApiController extends \Phalcon\Mvc\Controller {
             if ($room->status === 'private') {
                 if (false === $user_room) {
                     if (false === $this->session->has($room->id)) {
-                        $this->responseJson(array(
+                        return [[
                             'status' => 'err',
                             'message' => 'This room need password.',
-                        ), 403);
+                        ], 403];
                     }
                 }
             }
@@ -677,10 +657,24 @@ final class ApiController extends \Phalcon\Mvc\Controller {
 
             if ($songs && $songs->count() > 0) {
                 $songs = $songs->toArray();
+                array_walk($songs, function(&$item) {
+                    $item = array_combine(
+                        array_map(function($key) {
+                            return lcfirst(
+                                str_replace(
+                                    ' ',
+                                    '',
+                                    ucwords(str_replace('_', ' ', $key))
+                                )
+                            );
+                        }, array_keys($item)), $item);
+
+                    $item['sort'] = (int) $item['sort'];
+                });
             } else {
                 $songs = array();
             }
-            $this->responseJson(array(
+            return [[
                 'status' => 'ok',
                 'message' => 'Success.',
                 'result' => $songs,
@@ -689,19 +683,20 @@ final class ApiController extends \Phalcon\Mvc\Controller {
                     'name' => $room->name,
                     'alias' => $room->alias,
                 )
-            ));
+            ], 200];
         } else {
-            $this->responseJson(array(
+            return [[
                 'status' => 'err',
                 'message' => 'This room does not exists.',
-            ), 404);
+            ], 404];
         }
     }
 
     public function checkRoomAction() {
-        $data = $this->request->getPost();
+        $data = $this->request->getJsonRawBody(true);
 
         $room = Rooms::findFirst(array(
+            'columns' => 'id, name, alias, status',
             'conditions' => 'alias = :alias:',
             'bind' => array(
                 'alias' => $data['alias'],
@@ -733,28 +728,28 @@ final class ApiController extends \Phalcon\Mvc\Controller {
 
                 if (false === $user_room) {
                     if (false === $this->session->has($room->id)) {
-                        $this->responseJson(array(
+                        return [[
                             'status' => 'error',
                             'message' => 'Private room need password.',
-                        ), 403);
+                        ], 403];
                     }
                 }
             }
-            $this->responseJson(array(
+            return [[
                 'status' => 'ok',
                 'message' => 'Success.',
                 'result' => $room->toArray(),
-            ));
+            ], 200];
         } else {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'Room does not exists.',
-            ), 404);
+            ], 404];
         }
     }
 
     public function privateRoomAction() {
-        $data = $this->request->getPost();
+        $data = $this->request->getJsonRawBody(true);
 
         $room = Rooms::findFirst(array(
             'conditions' => 'alias = :alias:',
@@ -768,26 +763,26 @@ final class ApiController extends \Phalcon\Mvc\Controller {
 
         if ($room && true === $this->security->checkHash($data['password'], $room->password)) {
             $this->session->set($room->id, $data['password']);
-            $this->responseJson(array(
+            return [[
                 'status' => 'ok',
                 'message' => 'Success.',
-            ), 200);
+            ], 200];
         } else {
-            $this->responseJson(array(
+            return [[
                 'status' => 'err',
                 'message' => 'Room password invalid or room does not exists.',
-            ), 403);
+            ], 403];
         }
     }
 
     public function searchAction() {
-        $data = $this->request->getPost();
+        $data = $this->request->getJsonRawBody(true);
 
         if (empty($data['keyword'])) {
-            $this->responseJson(array(
+            return [[
                 'status' => 'err',
                 'message' => 'Room name is required.',
-            ), 404);
+            ], 404];
         }
 
         $rooms = Rooms::find(array(
@@ -820,16 +815,16 @@ final class ApiController extends \Phalcon\Mvc\Controller {
                 }
             });
 
-            $this->responseJson(array(
+            return [[
                 'status' => 'ok',
                 'message' => 'Success.',
                 'result' => $rooms,
-            ));
+            ], 200];
         } else {
-            $this->responseJson(array(
+            return [[
                 'status' => 'err',
                 'message' => 'Not found.',
-            ), 404);
+            ], 404];
         }
     }
 
@@ -839,20 +834,20 @@ final class ApiController extends \Phalcon\Mvc\Controller {
      */
     public function createRoomAction() {
         if (false === $this->session->has('USER')) {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'Need login.',
-            ));
+            ], 403];
         }
 
         $user = $this->session->get('USER');
-        $data = $this->request->getPost();
+        $data = $this->request->getJsonRawBody(true);
 
         if (empty($data)) {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'Data not found.',
-            ), 404);
+            ], 404];
         }
 
         $room_name = isset($data['roomId']) ? trim($data['roomId']) : null;
@@ -860,25 +855,25 @@ final class ApiController extends \Phalcon\Mvc\Controller {
         $room_password = isset($data['roomPassword']) ? trim($data['roomPassword']) : null;
 
         if (empty($room_name)) {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'Room ID is required.',
-            ), 405);
+            ], 405];
         }
         $room_alias = Slug::get($room_name);
         if (strlen($room_alias) > 200 || true === preg_match(NAME_WHITE_LIST, $room_name) || str_replace('-', '', $room_alias) === '') {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'Room ID is invalid.',
-            ), 405);
+            ], 405];
         }
 
         if ($room_type === 'private') {
             if (mb_strlen($room_password) < 6) {
-                $this->responseJson(array(
+                return [[
                     'status' => 'error',
                     'message' => 'Password is invalid or empty.',
-                ), 404);
+                ], 404];
             }
         } else {
             $room_password = NULL;
@@ -919,21 +914,21 @@ final class ApiController extends \Phalcon\Mvc\Controller {
 
             $transaction->commit();
 
-            $this->responseJson(array(
+            return [[
                 'status' => 'ok',
                 'message' => 'Success.',
                 'result' => $room->alias,
-            ));
+            ], 200];
         } catch(\Phalcon\Mvc\Model\Transaction\Failed $e) {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'Data save failed.',
-            ), 405);
+            ], 405];
         } catch(\PDOException $e) {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'Data save failed.',
-            ), 405);
+            ], 405];
         }
     }
 
@@ -943,10 +938,10 @@ final class ApiController extends \Phalcon\Mvc\Controller {
      */
     public function logoutAction() {
         $this->session->remove('USER');
-        $this->responseJson(array(
+        return [[
             'status' => 'ok',
             'message' => 'Success.',
-        ));
+        ], 200];
     }
 
     /**
@@ -955,16 +950,16 @@ final class ApiController extends \Phalcon\Mvc\Controller {
      */
     public function checkAuthAction() {
         if (true === $this->session->has('USER')) {
-            $this->responseJson(array(
+            return [[
                 'status' => 'ok',
                 'message' => 'Success.',
-                'result' => $this->session->get('USER'),
-            ));
+                'user' => $this->session->get('USER'),
+            ], 200];
         } else {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'Failed.',
-            ));
+            ], 200];
         }
     }
 
@@ -973,26 +968,26 @@ final class ApiController extends \Phalcon\Mvc\Controller {
      * @return null
      */
     public function loginAction() {
-        $data = $this->request->getPost();
+        $data = $this->request->getJsonRawBody(true);
 
         if (empty($data)) {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'Data not found.',
-            ), 404);
+            ], 404];
         }
 
         if (!isset($data['email']) || false === filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'E-mail is invalid or empty.',
-            ), 404);
+            ], 404];
         }
         if (!isset($data['password']) || mb_strlen($data['password']) < 6) {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'Password is invalid or empty.',
-            ), 404);
+            ], 404];
         }
 
         $user = Users::findFirst(array(
@@ -1006,10 +1001,10 @@ final class ApiController extends \Phalcon\Mvc\Controller {
         ));
 
         if (false === $user || false === $this->security->checkHash($data['password'], $user->password)) {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'Password is incurrect or e-mail does not exists.',
-            ), 405);
+            ], 405];
         }
 
         $transaction = $this->transactionManager->get();
@@ -1033,11 +1028,11 @@ final class ApiController extends \Phalcon\Mvc\Controller {
         );
         $this->session->set('USER', (object) $user);
 
-        $this->responseJson(array(
+        return [[
             'status' => 'ok',
             'message' => 'Success.',
-            'result' => $user,
-        ));
+            'user' => $user
+        ], 200];
     }
 
     /**
@@ -1045,32 +1040,32 @@ final class ApiController extends \Phalcon\Mvc\Controller {
      * @return null
      */
     public function signupAction() {
-        $data = $this->request->getPost();
+        $data = $this->request->getJsonRawBody(true);
 
         if (empty($data)) {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'Data not found.',
-            ), 404);
+            ], 404];
         }
 
         if (!isset($data['username'])) {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'Username is required.',
-            ), 404);
+            ], 404];
         }
         if (!isset($data['email']) || false === filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'E-mail is invalid or empty.',
-            ), 404);
+            ], 404];
         }
         if (!isset($data['password']) || mb_strlen($data['password']) < 6) {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'Password is invalid or empty.',
-            ), 404);
+            ], 404];
         }
 
         $transaction = $this->transactionManager->get();
@@ -1086,10 +1081,10 @@ final class ApiController extends \Phalcon\Mvc\Controller {
         ));
 
         if ($user) {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'E-mail already exists.',
-            ), 405);
+            ], 405];
         }
 
         try {
@@ -1109,60 +1104,20 @@ final class ApiController extends \Phalcon\Mvc\Controller {
 
             $transaction->commit();
 
-            $this->responseJson(array(
+            return [[
                 'status' => 'ok',
                 'message' => 'Success.',
-            ));
+            ], 200];
         } catch(\Phalcon\Mvc\Model\Transaction\Failed $e) {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'Data save failed.',
-            ), 405);
+            ], 405];
         } catch(\PDOException $e) {
-            $this->responseJson(array(
+            return [[
                 'status' => 'error',
                 'message' => 'Data save failed.',
-            ), 405);
+            ], 405];
         }
-    }
-
-    protected function getParams( $key = null, $default = null ) {
-        if (is_null($key)) {
-            return $this->dispatcher->getParams();
-        } else {
-            $params = $this->dispatcher->getParams();
-            if (count($params) > 0 && isset($params[$key])) {
-                return $params[$key];
-            } else {
-                return $default;
-            }
-        }
-    }
-
-    /**
-     * Prepare JSON response.
-     * @param  array   $response Data for json response.
-     * @param  integer $state    HTTP Status Code
-     * @return null
-     */
-    protected function responseJson(array $response = array(), $state = 200) {
-        $datetime = gmdate("D, d M Y H:i:s").' GMT';
-
-        $this->response->setHeader('Server', 'MuzikDJ');
-        $this->response->setHeader('Pragma', 'no-cache');
-        $this->response->setHeader('Cache-Control', 'no-cache, private, no-store, must-revalidate, pre-check=0, post-check=0, max-age=0, max-stale=0');
-        $this->response->setHeader('Last-Modified', $datetime);
-        $this->response->setHeader('X-Frame-Options', 'SAMEORIGIN');
-        $this->response->setHeader('X-Content-Type-Options', 'nosniff');
-        $this->response->setHeader('X-Powered-By', 'Hina');
-        $this->response->setContentType('application/json', 'UTF-8');
-        $this->response->setExpires(new \DateTime());
-        $this->response->setStatusCode($state);
-        $this->response->setEtag(md5($datetime));
-        $this->response->setJsonContent($response, JSON_UNESCAPED_UNICODE);
-        $this->response->send();
-
-        // Force exit the application.
-        exit;
     }
 }

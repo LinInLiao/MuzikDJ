@@ -1,8 +1,8 @@
 <?php
 
-namespace Muzikdj\Muzikdj;
+namespace Muzikdj\Api;
 
-use Muzikdj\Muzikdj\Plugins\Middleware as Middleware;
+use Muzikdj\Api\Plugins\Middleware as Middleware;
 use \Phalcon\Dispatcher;
 use \Phalcon\Mvc\Dispatcher as MvcDispatcher;
 use \Phalcon\Mvc\Dispatcher\Exception as DispatchException;
@@ -18,9 +18,9 @@ final class Module {
     public function registerAutoloaders($di) {
         $loader = new Loader();
         $loader->registerNamespaces(array(
-            'Muzikdj\Muzikdj\Controllers' => ROOT . DS . 'apps' . DS . SITENAME . DS . 'Controllers',
-            'Muzikdj\Muzikdj\Plugins' => ROOT . DS . 'apps' . DS . SITENAME . DS . 'Plugins',
-            'Muzikdj\Muzikdj\Views' => ROOT . DS . 'apps' . DS . SITENAME . DS . 'Views',
+            'Muzikdj\Api\Controllers' => ROOT . DS . 'apps' . DS . SITENAME . DS . 'Controllers',
+            'Muzikdj\Api\Plugins' => ROOT . DS . 'apps' . DS . SITENAME . DS . 'Plugins',
+            'Muzikdj\Api\Views' => ROOT . DS . 'apps' . DS . SITENAME . DS . 'Views',
         ))->register();
     }
 
@@ -82,7 +82,7 @@ final class Module {
 
             $dispatcher = new MvcDispatcher();
             $dispatcher->setEventsManager($eventsManager);
-            $dispatcher->setDefaultNamespace('Muzikdj\Muzikdj\Controllers\\');
+            $dispatcher->setDefaultNamespace('Muzikdj\Api\Controllers\\');
 
             return $dispatcher;
         });

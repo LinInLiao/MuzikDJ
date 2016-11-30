@@ -1,43 +1,140 @@
 <?php
 
-namespace Muzikdj\Muzikdj\Plugins;
+namespace Muzikdj\Api\Plugins;
 
-use \Phalcon\Events\Event;
-use \Phalcon\Mvc\Dispatcher;
-use \Phalcon\Http\Request;
-use \Phalcon\Acl;
+use \Phalcon\Mvc\Micro\MiddlewareInterface;
+use \Firebase\JWT\JWT;
 
-final class Middleware extends \Phalcon\DI\Injectable {
+class Middleware implements MiddlewareInterface {
 
-    /**
-     * Event Manager [beforeDispatch] Check the user login statement.
-     * @param  Event      $event      Events\Event
-     * @param  Dispatcher $dispatcher Dispatcher
-     * @return boolean                return false will stop the current operation
-     */
-    public function beforeDispatchLoop(Event $event, Dispatcher $dispatcher) {
-    }
+    protected $whitelist = [
+        '/api/login', '/api/logout'
+    ];
 
-    public function beforeExecuteRoute(Event $event, Dispatcher $dispatcher) {
-    }
-
-    /**
-     * [beforeException description]
-     * @param  Event      $event      [description]
-     * @param  Dispatcher $dispatcher [description]
-     * @param  [type]     $exception  [description]
-     * @return [type]                 [description]
-     */
-    public function beforeException(Event $event, Dispatcher $dispatcher, $exception) {
-        // In the production mode, handler and action not found will be forward to 404 Not Found page.
-        if (defined(ENVIRONMENT) && ENVIRONMENT === 'production') {
-            $dispatcher->forward(array(
-                'controller' => 'Index',
-                'action' => 'notFound'
-            ));
-            return false;
-        } else {
-            throw new \Exception($exception);
+    public function setHeader(\Phalcon\Mvc\Micro $app) {
+        $config = $app->di->getShared('config');
+        $whitelist = $config->allow_origin[ENVIRONMENT]->toArray();
+        $request_hostname =  '';
+        $origin = $app->request->getHeader('Origin');
+        if (!empty($origin)) {
+            $request_hostname = $origin;
         }
+
+        if (ENVIRONMENT === 'development') {
+            $whitelist = '*';
+        } else {
+            if (!is_array($whitelist)) {
+                $whitelist = 'https://'.$app->request->getServerName();
+            } else {
+                if (count($whitelist) === 0) {
+                    $whitelist = 'https://'.$app->request->getServerName();
+                } else {
+                    if (in_array($request_hostname, $whitelist)) {
+                        $whitelist = $request_hostname;
+                    } else {
+                        $whitelist = 'https://'.$app->request->getServerName();
+                    }
+                }
+            }
+        }
+        $datetime = gmdate("D, d M Y H:i:s").' GMT';
+        // $app->response->setHeader('Pragma', 'no-cache');
+        $app->response->setHeader(
+            'Cache-Control',
+            'no-cache, private, no-store, must-revalidate, pre-check=0, post-check=0, max-age=0, max-stale=0'
+        );
+        // $app->response->setHeader('Last-Modified', $datetime);
+        $app->response->setHeader('X-Frame-Options', 'SAMEORIGIN');
+        $app->response->setHeader('Access-Control-Allow-Origin', $whitelist);
+        $app->response->setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, PUT, OPTIONS');
+        $app->response->setHeader(
+            'Access-Control-Allow-Headers',
+            'X-Requested-With, X-HTTP-Method-Override, Content-Type, Cache-Control, Accept, Origin, Accept, Key, Authorization'
+        );
+        $app->response->setContentType('application/json', 'UTF-8');
+        $app->response->setExpires(new \DateTime());
+        $app->response->setEtag(md5($datetime));
+
+        return $app;
+    }
+
+    public function call(\Phalcon\Mvc\Micro $app) {
+        if ($app->request->isOptions()) {
+            return [ 'status' => 204, 'messages' => 'No Content.' ];
+        }
+
+        $action = $app['router']->getRewriteUri();
+        if (true === in_array($action, $this->whitelist, true)) {
+            return true;
+        }
+
+        if ('production' === ENVIRONMENT) {
+            if ($app->request->isAjax()) {
+                $origin = $app->request->getHeader('Origin');
+                if (empty($origin)) {
+                    return [ 'status' => 400, 'messages' => 'Origin does not exists.' ];
+                }
+            } else {
+                $referer = $app->request->getHeader('Referer');
+                if (empty($referer)) {
+                    return [ 'status' => 400, 'messages' => 'Referer does not exists.' ];
+                }
+            }
+        }
+
+        $params = [];
+        $auth = false;
+
+        $authorization = $app->request->getHeader('Authorization');
+        if (!is_null($authorization)) {
+            if (strpos(trim($authorization), 'Bearer') !== false) {
+                $authorization = str_replace('Bearer ', '', $authorization);
+            }
+        }
+        if (is_null($authorization) || empty($authorization)) {
+            if ($app->request->isGet()) {
+                $authorization = $app->request->get('token');
+            } else {
+                $params = $app->request->getJsonRawBody(true);
+                if (!is_null($params) && isset($params['token'])) {
+                    $authorization = $params['token'];
+                } else {
+                    $token = $app->request->getPost('token');
+                    if (is_null($token)) {
+                        $authorization = $app->request->get('token');
+                    } else {
+                        $authorization = $token;
+                    }
+                }
+            }
+        }
+        if (!empty($authorization) && !is_null($authorization)) {
+            if (strpos(trim($authorization), 'Bearer') !== false) {
+                $authorization = str_replace('Bearer ', '', $authorization);
+            }
+        }
+        $authorization = trim($authorization);
+        if (!empty($authorization)
+            && !is_null($authorization)
+            && $authorization !== 'Bearer'
+        ) {
+            try {
+                $token = JWT::decode($authorization, $this->config->cookie->crypt, ['HS256']);
+                if (is_null($token) || $token->exp < time()) {
+                    return [ 'status' => 403, 'messages' => 'Auth token expired.' ];
+                }
+            } catch (\Exception $e) {
+                return [ 'status' => 403, 'messages' => $e->getMessage() ];
+            }
+
+            $auth = (array) $token->sub;
+            if (isset($auth['type'])) {
+                $app->session->set($auth['type'], $auth);
+            }
+            unset($token);
+        }
+
+        return true;
     }
 }
+

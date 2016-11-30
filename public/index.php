@@ -18,12 +18,10 @@ define('YOUTUBE_API_KEY', getenv('YOUTUBE_API_KEY'));
 
 require (ROOT . DS .'vendor'. DS .'autoload.php');
 
-use \Phalcon\Config\Adapter\Ini as configIniAdapter,
-    \Phalcon\Config\Adapter\Php as configPhpAdapter,
-    \Phalcon\Db\Adapter\Pdo\Mysql as DbAdapter,
-    \Phalcon\Session\Adapter\Libmemcached as Session,
-    \Phalcon\Mvc\Model\Metadata,
-    \Phalcon\Mvc\Url;
+use \Phalcon\Config\Adapter\Php as configPhpAdapter;
+use \Phalcon\Db\Adapter\Pdo\Mysql as DbAdapter;
+use \Phalcon\Session\Adapter\Libmemcached as Session;
+use \Phalcon\Mvc\Model\Metadata;
 
 /**
  * The FactoryDefault Dependency Injector automatically register the right services providing a full stack framework
@@ -33,12 +31,10 @@ $di = new \Phalcon\DI\FactoryDefault();
 $config = new \Phalcon\Config\Adapter\Php(ROOT . DS .'configs'. DS .'config.php');
 $di->setShared('config', $config);
 
-/**
- * Whoops with phalcon DI
- */
-$whoops = new \Whoops\Provider\Phalcon\WhoopsServiceProvider($di);
-
 try {
+    if (ENVIRONMENT !== 'production') {
+        $whoops = new Whoops\Provider\Phalcon\WhoopsServiceProvider($di);
+    }
     /**
      * Setting logger first
      */
@@ -62,6 +58,7 @@ try {
         'Muzikdj\Library' => ROOT . DS . 'library',
         'Muzikdj\Models' => ROOT . DS . 'models',
         'Muzikdj\Plugins' => ROOT . DS . 'plugins',
+        'Muzikdj\Api' => ROOT . DS . 'apps' . DS . 'Muzikdj'
     ))->register();
 
     /**
@@ -129,11 +126,6 @@ try {
             'prefix' => $config->memcached->prefix
         ));
         if ($session->isStarted() === false) {
-            $domain = parse_url('http://'.$_SERVER['HTTP_HOST'], PHP_URL_HOST);
-            if (preg_match("/[^\.\/]+\.[^\.\/]+$/", $domain, $matches)) {
-                $domain = $matches[0];
-            }
-            session_set_cookie_params((int) $config->cookie->lifetime, '/', '.'.$domain, (boolean) $config->cookie->secure, (boolean) $config->cookie->httponly);
             $session->start();
         }
         return $session;
@@ -148,45 +140,13 @@ try {
         return $security;
     });
 
-    /**
-     * Router
-     */
-    $di->setShared('router', function() {
-        require ROOT . DS . 'configs' . DS . 'routes.php';
-        return $router;
-    });
+    require ROOT . DS . 'configs' . DS . 'routes.php';
 
-    $di->setShared('url', function() {
-        return new \Phalcon\Mvc\Url();
-    });
-
-    $di->setShared('view', function() use ($di, $config) {
-        $view = new \Phalcon\Mvc\View\Simple();
-        $view->setViewsDir(ROOT . DS . 'apps' . DS . SITENAME . DS . 'Views' . DS);
-        return $view;
-    });
-
-    $eventsManager = new \Phalcon\Events\Manager();
-
-    $eventsManager->attach("application:afterHandleRequest", function($event, $application) {
-        $datetime = gmdate("D, d M Y H:i:s").' GMT';
-        $application->response->setHeader('Server', 'MuzikDJ');
-        $application->response->setHeader('Last-Modified', $datetime);
-        $application->response->setHeader('X-Frame-Options', 'SAMEORIGIN');
-        $application->response->setHeader('X-Content-Type-Options', 'nosniff');
-        $application->response->setHeader('X-Powered-By', 'Hina');
-        return true;
-    });
-    $application = new \Phalcon\Mvc\Application($di);
-    $application->setEventsManager($eventsManager);
-    $application->registerModules(array(
-        SITENAME => array(
-            'className' => 'Muzikdj\\' . SITENAME . '\Module',
-            'path' => ROOT . DS .'apps'. DS . SITENAME . DS .'Module.php'
-        )
-    ));
-    $application->useImplicitView(false);
-    echo $application->handle()->getContent();
+    if (getenv('MUZIKDJ_TESTING') === 'testing') {
+        return $app;
+    } else {
+        $app->handle();
+    }
 } catch (\Phalcon\Mvc\Dispatcher\Exception $e) {
     if (isset($logger)) {
         $logger->error($e->getMessage().PHP_EOL.$e->getTraceAsString().PHP_EOL);

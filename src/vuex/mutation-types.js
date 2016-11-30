@@ -1,0 +1,5 @@
+export const USER_DATA = 'USER_DATA'
+export const USER_TOKEN = 'USER_TOKEN'
+export const ROOMS = 'ROOMS'
+export const SINGLE_ROOM = 'SINGLE_ROOM'
+export const SINGLE_ROOM_SONGS = 'SINGLE_ROOM_SONGS'

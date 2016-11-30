@@ -3,7 +3,7 @@
 use \Ratchet\Server\IoServer;
 use \Ratchet\Http\HttpServer;
 use \Ratchet\Wamp\WampServer;
-use Muzikdj\Muzikdj\Plugins\Room;
+use Muzikdj\Api\Plugins\Room;
 
 final class MainTask extends \Phalcon\CLI\Task {
 

@@ -31,6 +31,8 @@ main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
 </template>
 
 <script>
+import { mapActions } from 'vuex'
+
 export default {
   name: 'homepage',
   data () {
@@ -38,11 +40,24 @@ export default {
       roomName: ''
     }
   },
-  methods: {
-    join () {
-
+  methods: Object.assign(
+    mapActions([
+      'checkRoom'
+    ]),
+    {
+      join () {
+        this.checkRoom(this.roomName).then((res) => {
+          this.$router.push({ name: 'singleRoom', params: { alias: res.alias } })
+        }, (error) => {
+          this.$swal({
+            title: 'Oops!',
+            type: 'error',
+            text: error.message
+          })
+        })
+      }
     }
-  }
+  )
 }
 </script>
 

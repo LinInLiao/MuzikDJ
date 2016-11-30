@@ -24,6 +24,11 @@ return [
 	'whitelist' => [
 		'name' => '#(api|create|delete|save|hinablue|hinachen|hana|hina|ajax|post|get|remove|add)#i'
 	],
+	'allow_origin' => [
+		'development' => ['*'],
+		'staging' => [],
+		'production' => []
+	],
 	'logger' => [
 		'folder' => 'logs',
 		'level' => \Phalcon\Logger::ERROR

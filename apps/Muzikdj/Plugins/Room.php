@@ -1,6 +1,6 @@
 <?php
 
-namespace Muzikdj\Muzikdj\Plugins;
+namespace Muzikdj\Api\Plugins;
 
 use \Ratchet\Wamp\WampServerInterface;
 use \Ratchet\ConnectionInterface;

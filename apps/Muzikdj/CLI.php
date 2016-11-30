@@ -24,7 +24,7 @@ $loader->registerNamespaces(array(
     'Muzikdj\Library' => ROOT . DS . 'library',
     'Muzikdj\Models' => ROOT . DS . 'models',
     'Muzikdj\Plugins' => ROOT . DS . 'plugins',
-    'Muzikdj\Muzikdj\Plugins' => APPLICATION_PATH . DS . 'Plugins',
+    'Muzikdj\Api\Plugins' => APPLICATION_PATH . DS . 'Plugins',
 ))->register();
 
 $di = new \Phalcon\DI\FactoryDefault\CLI();

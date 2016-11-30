@@ -5,12 +5,12 @@ header.mdl-layout__header.mdl-layout__header--transparent
       img.mdl-layout-title(src="../assets/logo.svg")
     .mdl-layout-spacer
     nav.mdl-navigation
-      a.mdl-navigation__link.m-font__lato--thin(v-if="!user.login", href="/login")
+      a.mdl-navigation__link.m-font__lato--thin(v-if="!isLogin", href="/login")
         span.color--light-blue Login
-      a.mdl-navigation__link.m-font__lato--thin(v-if="!user.login", href="/signup")
+      a.mdl-navigation__link.m-font__lato--thin(v-if="!isLogin", href="/signup")
         span.color--light-blue Sign up
-      .mdl-navigation__link.m-font__lato--thin.user__name(v-if="user.login")
-        span.m-font__lato--thin.color--light-blue(v-bind="user.name")
+      .mdl-navigation__link.m-font__lato--thin.user__name(v-if="isLogin")
+        span.m-font__lato--thin.color--light-blue {{ getUserData.name }}
         .user__menu
           ul
             li
@@ -24,13 +24,23 @@ header.mdl-layout__header.mdl-layout__header--transparent
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+
 export default {
+  computed: Object.assign(
+    {
+      isLogin () {
+        return typeof this.getUserData !== 'undefined' && typeof this.getUserData.id !== 'undefined'
+      }
+    },
+    mapGetters([
+      'getUserData',
+      'getToken'
+    ]),
+  ),
   data () {
     return {
-      user: {
-        login: false,
-        name: ''
-      }
+      isLogin: false
     }
   }
 }

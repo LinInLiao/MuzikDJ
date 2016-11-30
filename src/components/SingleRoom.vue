@@ -1,0 +1,133 @@
+<template lang="jade">
+main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
+  .mdl-grid.m-section__header(v-if="roomCheck !== false")
+    section.mdl-cell.mdl-cell--10-col.mdl-cell--4-col-phone.m-section__header.s-background--transparent
+      h1.e-slogan.m-inline--align-center.m-font__lato--thin.color--light-blue {{ getSingleRoom.name }}
+      form.m-join-room__form(v-if="roomCheck === 'login'")
+        .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
+          input#password.mdl-textfield__input.m-font__lato--thin(type="password", v-model="roomPassword")
+          label.mdl-textfield__label.m-font__lato--thin(for="password") Password
+        button.mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect.m-button--full-transparent.m-font__lato--thin(type="button", @click="join()") Join
+        br
+        span.s-error-message.m-font__lato--thin(v-if="error === 'password'") Password is invalid.
+    //- video-bg.video-player--masker(video-id="youtubeId", content-z-index="999", loop="false", mute="false", mobile-image="'../assets/logo.svg'", player-callback="videoCallback(player)", state-callback="playerStateChange(event)")
+  .mdl-grid(v-if="roomCheck === true")
+    section.mdl-cell.mdl-cell--10-col.mdl-cell--4-col-phone.m-box--align-center
+      form.m-add-url__form(action="#")
+        .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
+          input#url.mdl-textfield__input.m-font__lato--thin(type="url", pattern="^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?", v-model="songUrl")
+          label.mdl-textfield__label.m-font__lato--thin(for="url") Youtube URL
+        span.s-error-message.m-font__lato--thin(v-if="error === 'url'") URL is invalid.
+        button.mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect.m-button--full-transparent.m-font__lato--thin(type="button", @click="add()") Add To Playlist
+    section.mdl-cell.mdl-cell--8-col.mdl-cell--12-col-phone.m-box--align-center
+      table.mdl-data-table.mdl-js-data-table.room-playlist__table
+        thead
+          tr
+            th.mdl-data-table__cell--non-numeric.color--light-blue.m-font__lato--thin.song-cover Cover
+            th.mdl-data-table__cell--non-numeric.color--light-blue.m-font__lato--thin.song-title Title
+            th.color--light-blue.m-font__lato--thin.song-dj DJ
+            th.color--light-blue.m-font__lato--thin.song-remove  
+        tbody
+          tr.song(v-bind:class="{ playing: playingStatus.id === song.id }", v-for="(song, key) in getSingleRoomSongs")
+            td.mdl-data-table__cell--non-numeric.song-cover(:style="{ backgroundImage: 'url(' + song.cover + ')' }", @click="play(song)")
+              i.material-icons.icon--floating(v-bind:class="{ 'color--light-blue': playingStatus.id === song.id }") play_circle_filled
+            td.mdl-data-table__cell--non-numeric.m-font__lato--thin.song-title {{ song.name }}
+            td.m-font__lato--thin.song-dj {{ song.dj }}
+            td.m-font__lato--thin.song-remove
+              button.mdl-button.mdl-js-button.mdl-button--icon(@click="remove(key)")
+                i.material-icons cancel
+</template>
+
+<script>
+import { mapActions, mapGetters } from 'vuex'
+
+export default {
+  name: 'singleRoom',
+  beforeRouteEnter (to, from, next) {
+    next(vm => {
+      if (typeof to.params.alias === 'undefined') {
+        vm.$router.push({ name: 'error' })
+      }
+      if (typeof vm.getSingleRoom.status === 'undefined') {
+        vm.checkRoom(to.params.alias).then((res) => {
+          if (res.status === 'public') {
+            vm.fetchSingleRoomSongs(to.params.alias)
+          }
+        }, () => {
+          vm.$router.push({ name: 'error' })
+        })
+      } else {
+        if (vm.getSingleRoom.status === 'public') {
+          vm.fetchSingleRoomSongs(to.params.alias)
+        }
+      }
+    })
+  },
+  computed: Object.assign(
+    mapGetters([
+      'getSingleRoom',
+      'getSingleRoomSongs'
+    ]),
+    {
+      roomCheck () {
+        return typeof this.getSingleRoom.status !== 'undefined'
+          ? (this.getSingleRoom.status === 'private' ? 'login' : true) : false
+      }
+    }
+  ),
+  methods: Object.assign(
+    mapActions([
+      'checkRoom',
+      'fetchSingleRoomSongs',
+      'joinPrivateRoom',
+      'createSongForRoom'
+    ]),
+    {
+      remove (index) {
+
+      },
+      play (song) {
+
+      },
+      add () {
+        this.createSongForRoom({
+          room: this.getSingleRoom.alias,
+          url: this.songUrl
+        }).then(() => {
+          // DO NOTHING.
+        }, (error) => {
+          this.$swal({
+            title: 'Oops!',
+            type: 'error',
+            text: error.message
+          })
+        })
+      },
+      join () {
+        this.joinPrivateRoom({
+          alias: this.getSingleRoom.alias,
+          password: this.roomPassword
+        }).then(() => {
+          this.fetchSingleRoomSongs(this.getSingleRoom.alias)
+        }, (error) => {
+          this.$swal({
+            title: 'Oops!',
+            type: 'error',
+            text: error.message
+          })
+        })
+      }
+    }
+  ),
+  data () {
+    return {
+      error: '',
+      songUrl: '',
+      roomPassword: '',
+      playingStatus: {
+        id: ''
+      }
+    }
+  }
+}
+</script>
