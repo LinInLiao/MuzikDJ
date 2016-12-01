@@ -1,7 +1,8 @@
 import {
   ROOMS,
   SINGLE_ROOM,
-  SINGLE_ROOM_SONGS
+  SINGLE_ROOM_SONGS,
+  ACCOUNT_ROOMS
 } from '../mutation-types'
 
 import * as actions from './actions'
@@ -22,6 +23,9 @@ const mutations = {
   },
   [SINGLE_ROOM_SONGS] (state, data) {
     state.singleRoomSongs = data
+  },
+  [ACCOUNT_ROOMS] (state, data) {
+    state.accountRooms = data
   }
 }
 

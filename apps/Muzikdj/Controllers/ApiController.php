@@ -13,6 +13,8 @@ use Muzikdj\Models\UserPlaylist;
 use Muzikdj\Models\UserRoom;
 use Muzikdj\Models\Users;
 
+use \Firebase\JWT\JWT;
+
 final class ApiController extends \Phalcon\Mvc\Controller {
 
     public function removeRoomAction() {
@@ -138,7 +140,7 @@ final class ApiController extends \Phalcon\Mvc\Controller {
                 $transaction->commit();
                 return [[
                     'status' => 'ok',
-                    'message' => 'Success.',
+                    'message' => 'Succeeded!',
                 ], 200];
             } catch(\Phalcon\Mvc\Model\Transaction\Failed $e) {
                 return [[
@@ -165,7 +167,7 @@ final class ApiController extends \Phalcon\Mvc\Controller {
         if (is_null($user)) {
             return [[
                 'status' => 'error',
-                'message' => 'Need login.',
+                'message' => 'Need login.'
             ], 403];
         }
         $user_rooms = UserRoom::query()
@@ -195,7 +197,7 @@ final class ApiController extends \Phalcon\Mvc\Controller {
 
             return [[
                 'status' => 'ok',
-                'message' => 'Success.',
+                'message' => 'Succeeded!',
                 'result' => $user_rooms,
             ], 200];
         } else {
@@ -247,7 +249,7 @@ final class ApiController extends \Phalcon\Mvc\Controller {
                 $transaction->commit();
                 return [[
                     'status' => 'ok',
-                    'message' => 'Success.',
+                    'message' => 'Succeeded!',
                 ], 200];
             } catch(\Phalcon\Mvc\Model\Transaction\Failed $e) {
                 return [[
@@ -326,7 +328,7 @@ final class ApiController extends \Phalcon\Mvc\Controller {
                 $transaction->commit();
                 return [[
                     'status' => 'ok',
-                    'message' => 'Success.',
+                    'message' => 'Succeeded!',
                 ], 200];
             } catch(\Phalcon\Mvc\Model\Transaction\Failed $e) {
                 return [[
@@ -496,7 +498,7 @@ final class ApiController extends \Phalcon\Mvc\Controller {
 
                 return [[
                     'status' => 'ok',
-                    'message' => 'Success.',
+                    'message' => 'Succeeded!',
                     'result' => (object) array(
                         'id' => $song->id,
                         'dj' => $user->name,
@@ -553,7 +555,7 @@ final class ApiController extends \Phalcon\Mvc\Controller {
 
             return [[
                 'status' => 'ok',
-                'message' => 'Success.',
+                'message' => 'Succeeded!',
                 'result' => $rooms,
             ], 200];
         } else {
@@ -589,7 +591,7 @@ final class ApiController extends \Phalcon\Mvc\Controller {
         }
         return [[
             'status' => 'ok',
-            'message' => 'Success.',
+            'message' => 'Succeeded!',
             'result' => $songs,
         ], 200];
     }
@@ -676,7 +678,7 @@ final class ApiController extends \Phalcon\Mvc\Controller {
             }
             return [[
                 'status' => 'ok',
-                'message' => 'Success.',
+                'message' => 'Succeeded!',
                 'result' => $songs,
                 'room' => array(
                     'id' => $room->id,
@@ -737,7 +739,7 @@ final class ApiController extends \Phalcon\Mvc\Controller {
             }
             return [[
                 'status' => 'ok',
-                'message' => 'Success.',
+                'message' => 'Succeeded!',
                 'result' => $room->toArray(),
             ], 200];
         } else {
@@ -765,7 +767,7 @@ final class ApiController extends \Phalcon\Mvc\Controller {
             $this->session->set($room->id, $data['password']);
             return [[
                 'status' => 'ok',
-                'message' => 'Success.',
+                'message' => 'Succeeded!',
             ], 200];
         } else {
             return [[
@@ -817,7 +819,7 @@ final class ApiController extends \Phalcon\Mvc\Controller {
 
             return [[
                 'status' => 'ok',
-                'message' => 'Success.',
+                'message' => 'Succeeded!',
                 'result' => $rooms,
             ], 200];
         } else {
@@ -916,7 +918,7 @@ final class ApiController extends \Phalcon\Mvc\Controller {
 
             return [[
                 'status' => 'ok',
-                'message' => 'Success.',
+                'message' => 'Succeeded!',
                 'result' => $room->alias,
             ], 200];
         } catch(\Phalcon\Mvc\Model\Transaction\Failed $e) {
@@ -940,7 +942,7 @@ final class ApiController extends \Phalcon\Mvc\Controller {
         $this->session->remove('USER');
         return [[
             'status' => 'ok',
-            'message' => 'Success.',
+            'message' => 'Succeeded!',
         ], 200];
     }
 
@@ -950,16 +952,64 @@ final class ApiController extends \Phalcon\Mvc\Controller {
      */
     public function checkAuthAction() {
         if (true === $this->session->has('USER')) {
+            $user = (array) $this->session->get('USER');
             return [[
                 'status' => 'ok',
-                'message' => 'Success.',
-                'user' => $this->session->get('USER'),
+                'message' => 'Succeeded!',
+                'user' => $user,
+                'authenticate' => [
+                    'id' => $user['id']
+                ]
             ], 200];
         } else {
-            return [[
-                'status' => 'error',
-                'message' => 'Failed.',
-            ], 200];
+            $data = $this->request->getJsonRawBody(true);
+
+            if (empty($data) || !isset($data['token']) || empty($data['token'])) {
+                return [[
+                    'status' => 'error',
+                    'message' => 'Auth token does not exists.'
+                ], 403];
+            }
+            try {
+                $token = JWT::decode($data['token'], $this->config->cookie->crypt, ['HS256']);
+                if (is_null($token)) {
+                    return [[ 'status' => 'error', 'message' => 'Auth token does not exists.' ], 403];
+                }
+                if (time() > $token->exp) {
+                    return [[ 'status' => 'error', 'messages' => 'Auth token expired.' ], 403];
+                }
+                $auth = (array) $token->sub;
+                $user = Users::findFirst(array(
+                    'conditions' => 'id = :id:',
+                    'bind' => array(
+                        'id' => $auth['id'],
+                    ),
+                    'bindTypes' => array(
+                        'id' => \Phalcon\Db\Column::BIND_PARAM_STR,
+                    ),
+                ));
+
+                if ($user) {
+                    $user = array(
+                        'id' => $user->id,
+                        'email' => $user->email,
+                        'name' => $user->name,
+                        'token' => $user->token,
+                    );
+
+                    return [[
+                        'status' => 'ok',
+                        'message' => 'Succeeded!',
+                        'user' => $user,
+                        'authenticate' => [
+                            'id' => $user['id']
+                        ]
+                    ], 200];
+                }
+                return [[ 'status' => 'error', 'messages' => 'Auth token is invalid.' ], 403];
+            } catch (\Exception $e) {
+                return [[ 'status' => 'error', 'messages' => $e->getMessage() ], 403];
+            }
         }
     }
 
@@ -1019,7 +1069,6 @@ final class ApiController extends \Phalcon\Mvc\Controller {
         } catch(\PDOException $e) {
         }
 
-        $user = (object) $user->toArray();
         $user = array(
             'id' => $user->id,
             'email' => $user->email,
@@ -1030,8 +1079,11 @@ final class ApiController extends \Phalcon\Mvc\Controller {
 
         return [[
             'status' => 'ok',
-            'message' => 'Success.',
-            'user' => $user
+            'message' => 'Succeeded!',
+            'user' => $user,
+            'authenticate' => [
+                'id' => $user['id']
+            ]
         ], 200];
     }
 
@@ -1106,7 +1158,7 @@ final class ApiController extends \Phalcon\Mvc\Controller {
 
             return [[
                 'status' => 'ok',
-                'message' => 'Success.',
+                'message' => 'Succeeded!',
             ], 200];
         } catch(\Phalcon\Mvc\Model\Transaction\Failed $e) {
             return [[

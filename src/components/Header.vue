@@ -14,13 +14,13 @@ header.mdl-layout__header.mdl-layout__header--transparent
         .user__menu
           ul
             li
-              a.m-font__lato--thin.color--light-blue(href="/account/edit") Edit Account
+              router-link.m-font__lato--thin.color--light-blue(:to="{ name: 'accountEdit' }") Edit Account
             li
-              a.m-font__lato--thin.color--light-blue(href="/account/favorite") My Favorite
+              router-link.m-font__lato--thin.color--light-blue(:to="{ name: 'accountFavorite' }") My Favorite
             li
-              a.m-font__lato--thin.color--light-blue(href="/account/rooms") My Rooms
+              router-link.m-font__lato--thin.color--light-blue(:to="{ name: 'accountRooms'} ") My Rooms
             li
-              a.m-font__lato--thin.color--light-blue(href="/logout") Logout
+              router-link.m-font__lato--thin.color--light-blue(:to="{ name: 'logout' }") Logout
 </template>
 
 <script>
@@ -28,15 +28,15 @@ import { mapGetters } from 'vuex'
 
 export default {
   computed: Object.assign(
+    mapGetters([
+      'getUserData',
+      'getToken'
+    ]),
     {
       isLogin () {
         return typeof this.getUserData !== 'undefined' && typeof this.getUserData.id !== 'undefined'
       }
     },
-    mapGetters([
-      'getUserData',
-      'getToken'
-    ]),
   ),
   data () {
     return {

@@ -7,6 +7,8 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex'
+import cookies from './plugins/cookies'
 import Header from './components/Header.vue'
 import Footer from './components/Footer.vue'
 
@@ -15,6 +17,14 @@ export default {
   components: {
     'mz-header': Header,
     'mz-footer': Footer
+  },
+  methods: mapActions(['checkToken', 'setUserToken']),
+  created () {
+    const token = cookies.get('muzikDJToken')
+    if (typeof token !== 'undefined') {
+      this.setUserToken(token)
+      this.checkToken(token)
+    }
   }
 }
 </script>

@@ -2,13 +2,14 @@
 
 namespace Muzikdj\Api\Plugins;
 
+use Muzikdj\Models\Users;
 use \Phalcon\Mvc\Micro\MiddlewareInterface;
 use \Firebase\JWT\JWT;
 
 class Middleware implements MiddlewareInterface {
 
     protected $whitelist = [
-        '/api/login', '/api/logout'
+        '/api/login', '/api/logout', '/api/auth/check'
     ];
 
     public function setHeader(\Phalcon\Mvc\Micro $app) {
@@ -100,15 +101,13 @@ class Middleware implements MiddlewareInterface {
                     $authorization = $params['token'];
                 } else {
                     $token = $app->request->getPost('token');
-                    if (is_null($token)) {
-                        $authorization = $app->request->get('token');
-                    } else {
+                    if (!is_null($token)) {
                         $authorization = $token;
                     }
                 }
             }
         }
-        if (!empty($authorization) && !is_null($authorization)) {
+        if (!empty($authorization)) {
             if (strpos(trim($authorization), 'Bearer') !== false) {
                 $authorization = str_replace('Bearer ', '', $authorization);
             }
@@ -119,19 +118,35 @@ class Middleware implements MiddlewareInterface {
             && $authorization !== 'Bearer'
         ) {
             try {
-                $token = JWT::decode($authorization, $this->config->cookie->crypt, ['HS256']);
-                if (is_null($token) || $token->exp < time()) {
-                    return [ 'status' => 403, 'messages' => 'Auth token expired.' ];
+                $token = JWT::decode($authorization, $app->config->cookie->crypt, ['HS256']);
+                if (!is_null($token)) {
+                    if (time() < $token->exp) {
+                        $auth = (array) $token->sub;
+                        $user = Users::findFirst(array(
+                            'conditions' => 'id = :id:',
+                            'bind' => array(
+                                'id' => $auth['id'],
+                            ),
+                            'bindTypes' => array(
+                                'id' => \Phalcon\Db\Column::BIND_PARAM_STR,
+                            ),
+                        ));
+
+                        if ($user) {
+                            $user = array(
+                                'id' => $user->id,
+                                'email' => $user->email,
+                                'name' => $user->name,
+                                'token' => $user->token,
+                            );
+                            $app->session->set('USER', (object) $user);
+                            unset($token);
+                            unset($user);
+                        }
+                    }
                 }
             } catch (\Exception $e) {
-                return [ 'status' => 403, 'messages' => $e->getMessage() ];
             }
-
-            $auth = (array) $token->sub;
-            if (isset($auth['type'])) {
-                $app->session->set($auth['type'], $auth);
-            }
-            unset($token);
         }
 
         return true;

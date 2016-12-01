@@ -50,11 +50,10 @@ final class ResponseMiddleware extends Middleware implements MiddlewareInterface
                     $data['token'] = JWT::encode([
                         'sub' => $data['authenticate'],
                         'iat' => time(),
-                        'exp' => time() + $this->config->cookie->lifetime
-                    ], $this->config->cookie->crypt);
+                        'exp' => time() + $app->config->cookie->lifetime
+                    ], $app->config->cookie->crypt, 'HS256');
                     unset($data['authenticate']);
                 }
-
                 $app->response->setStatusCode($status)->sendHeaders();
                 $app->response->setJsonContent($data, JSON_UNESCAPED_UNICODE);
             }

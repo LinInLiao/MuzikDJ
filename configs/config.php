@@ -47,7 +47,7 @@ return [
 
 	],
 	'cookie' => [
-		'crypt' => '9(*&^%$muzikdjERfgfghjk',
+		'crypt' => '9(*&^%$muzikdjERfgoboasdf19237865rvbnmkjhfde5678k',
 		'secure' => false,
 		'httponly' => false,
 		'lifetime' => 86400

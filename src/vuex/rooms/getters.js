@@ -5,3 +5,7 @@ export const getSingleRoom = state => {
 export const getSingleRoomSongs = state => {
   return state.singleRoomSongs
 }
+
+export const getAccountRooms = state => {
+  return state.accountRooms
+}
