@@ -10,11 +10,11 @@ main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
         button.mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect.m-button--full-transparent(type="button", @click="search()") Search
         br
         span.s-error-message.m-font__lato--thin(v-if="error === 'keyword'") Room name is required.
-  .mdl-grid
-    rooms(:rooms="rooms")
+  rooms(:rooms="rooms")
 </template>
 
 <script>
+import { mapActions, mapGetters } from 'vuex'
 import Rooms from './Rooms.vue'
 
 export default {
@@ -22,11 +22,25 @@ export default {
   components: {
     rooms: Rooms
   },
-  methods: {
-    search () {
-
+  computed: mapGetters(['getRooms']),
+  methods: Object.assign(
+    mapActions([
+      'searchRoom'
+    ]),
+    {
+      search () {
+        this.searchRoom(this.keyword).then(() => {
+          this.rooms = this.getRooms
+        }, (err) => {
+          this.$swal({
+            title: 'Oops!',
+            type: 'error',
+            text: err.message
+          })
+        })
+      }
     }
-  },
+  ),
   data () {
     return {
       rooms: [],

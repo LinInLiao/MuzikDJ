@@ -1,3 +1,7 @@
+export const getRooms = state => {
+  return state.rooms
+}
+
 export const getSingleRoom = state => {
   return state.singleRoom
 }
@@ -8,4 +12,7 @@ export const getSingleRoomSongs = state => {
 
 export const getAccountRooms = state => {
   return state.accountRooms
+}
+export const getRoomToken = state => {
+  return state.roomToken
 }

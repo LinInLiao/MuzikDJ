@@ -31,11 +31,11 @@ export default {
           password: this.password
         }).then(() => {
           this.$router.push({ name: 'homepage' })
-        }, (error) => {
+        }, (err) => {
           this.$swal({
             title: 'Oops!',
             type: 'error',
-            text: error.message
+            text: err.message
           })
         })
       }

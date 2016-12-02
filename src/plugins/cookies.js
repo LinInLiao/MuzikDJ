@@ -1,5 +1,5 @@
 export default {
-  get: (key) => {
+  get: function (key) {
     let list = []
     let cookies = {}
     let hasCookies = false
@@ -38,7 +38,7 @@ export default {
       return undefined
     }
   },
-  set: (key, value, options) => {
+  set: function (key, value, options) {
     options = Object.assign({
       expires: new Date('Thu, 01 Jan 1970 00:00:00 GMT'),
       expirationUnit: 'seconds',
@@ -82,7 +82,7 @@ export default {
       }
     }
   },
-  remove: (key, options) => {
+  remove: function (key, options) {
     const hasCookie = this.get(key) !== undefined
     if (hasCookie) {
       if (typeof options !== 'object') {

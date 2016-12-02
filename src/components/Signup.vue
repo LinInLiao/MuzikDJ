@@ -23,13 +23,32 @@ main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
 </template>
 
 <script>
+import { mapActions } from 'vuex'
+
 export default {
   name: 'signup',
-  methods: {
-    signup () {
-
+  methods: Object.assign(
+    mapActions([
+      'userSignup'
+    ]),
+    {
+      signup () {
+        this.userSignup({
+          username: this.username,
+          email: this.email,
+          password: this.password
+        }).then(() => {
+          this.$router.push({ name: 'accountEdit' })
+        }, (err) => {
+          this.$swal({
+            title: 'Oops!',
+            type: 'error',
+            text: err.message
+          })
+        })
+      }
     }
-  },
+  ),
   data () {
     return {
       username: '',

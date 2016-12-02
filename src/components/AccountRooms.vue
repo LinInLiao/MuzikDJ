@@ -2,8 +2,7 @@
 main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
   .mdl-grid
     .mdl-cell.mdl-cell--10-col.mdl-cell--4-col-phone.m-box--align-center
-      .mdl-grid
-        rooms(:rooms="rooms")
+      rooms(:rooms="rooms")
 </template>
 
 <script>

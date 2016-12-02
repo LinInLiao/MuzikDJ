@@ -48,11 +48,11 @@ export default {
       join () {
         this.checkRoom(this.roomName).then((res) => {
           this.$router.push({ name: 'singleRoom', params: { alias: res.alias } })
-        }, (error) => {
+        }, (err) => {
           this.$swal({
             title: 'Oops!',
             type: 'error',
-            text: error.message
+            text: err.message
           })
         })
       }

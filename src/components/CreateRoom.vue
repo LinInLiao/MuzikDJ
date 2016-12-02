@@ -23,6 +23,8 @@ main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
 </template>
 
 <script>
+import { mapActions } from 'vuex'
+
 export default {
   name: 'createRoom',
   computed: {
@@ -30,17 +32,37 @@ export default {
       return this.roomType === 'private'
     }
   },
-  methods: {
-    create () {
-
+  methods: Object.assign(
+    mapActions(['createRoom']),
+    {
+      create () {
+        this.createRoom({
+          roomType: this.roomType,
+          roomId: this.roomId,
+          roomPassword: this.roomPassword
+        }).then((res) => {
+          this.$router.push({
+            name: 'singleRoom',
+            params: {
+              alias: res
+            }
+          })
+        }, (err) => {
+          this.$swal({
+            title: 'Oops!',
+            type: 'error',
+            text: err.message
+          })
+        })
+      }
     }
-  },
+  ),
   data () {
     return {
       roomType: 'private',
       roomId: '',
-      error: '',
-      roomPassword: ''
+      roomPassword: '',
+      error: ''
     }
   }
 }

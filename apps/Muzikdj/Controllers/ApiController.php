@@ -626,15 +626,37 @@ final class ApiController extends \Phalcon\Mvc\Controller {
                 $user_room = false;
             }
             if ($room->status === 'private') {
-                if (false === $user_room) {
-                    if (false === $this->session->has($room->id)) {
-                        return [[
-                            'status' => 'err',
-                            'message' => 'This room need password.',
-                        ], 403];
-                    }
+                $token = $this->request->get('token');
+                if (false === $user_room || empty($token)) {
+                    return [[
+                        'status' => 'err',
+                        'message' => 'This room need password.',
+                    ], 403];
+                }
+
+                $token = JWT::decode($token, $this->config->cookie->crypt, ['HS256']);
+                if (is_null($token)) {
+                    return [[
+                        'status' => 'err',
+                        'message' => 'This room need password.',
+                    ], 403];
+                }
+                if (time() > $token->exp) {
+                    return [[
+                        'status' => 'err',
+                        'message' => 'This room need password.',
+                    ], 403];
+                }
+                $room_token = (array) $token->sub;
+                if ($room_token['id'] !== $room->id) {
+                    return [[
+                        'status' => 'err',
+                        'message' => 'This room need password.',
+                    ], 403];
                 }
             }
+
+            $room->status = 'public';
 
             $songs = Songs::query()
                 ->columns(array(
@@ -714,7 +736,7 @@ final class ApiController extends \Phalcon\Mvc\Controller {
 
                 if (!is_null($user)) {
                     $user_room = UserRoom::findFirst(array(
-                        'condotions' => 'user_id = :user_id: AND room_id = :room_id:',
+                        'conditions' => 'user_id = :user_id: AND room_id = :room_id:',
                         'bind' => array(
                             'user_id' => $user->id,
                             'room_id' => $room->id,
@@ -729,14 +751,43 @@ final class ApiController extends \Phalcon\Mvc\Controller {
                 }
 
                 if (false === $user_room) {
-                    if (false === $this->session->has($room->id)) {
+                    if (!isset($data['token'])) {
                         return [[
-                            'status' => 'error',
+                            'status' => 'err',
+                            'message' => 'Private room need password.',
+                        ], 403];
+                    }
+                    if (empty($data['token'])) {
+                        return [[
+                            'status' => 'err',
+                            'message' => 'Private room need password.',
+                        ], 403];
+                    }
+                    $token = JWT::decode($data['token'], $this->config->cookie->crypt, ['HS256']);
+                    if (is_null($token)) {
+                        return [[
+                            'status' => 'err',
+                            'message' => 'Private room need password.',
+                        ], 403];
+                    }
+                    if (time() > $token->exp) {
+                        return [[
+                            'status' => 'err',
+                            'message' => 'Private room need password.',
+                        ], 403];
+                    }
+                    $room_token = (array) $token->sub;
+                    if ($room_token['id'] !== $room->id) {
+                        return [[
+                            'status' => 'err',
                             'message' => 'Private room need password.',
                         ], 403];
                     }
                 }
             }
+
+            $room->status = 'public';
+
             return [[
                 'status' => 'ok',
                 'message' => 'Succeeded!',
@@ -764,10 +815,12 @@ final class ApiController extends \Phalcon\Mvc\Controller {
         ));
 
         if ($room && true === $this->security->checkHash($data['password'], $room->password)) {
-            $this->session->set($room->id, $data['password']);
             return [[
                 'status' => 'ok',
                 'message' => 'Succeeded!',
+                'authenticate' => [
+                    'id' => $room->id
+                ]
             ], 200];
         } else {
             return [[
@@ -1159,6 +1212,9 @@ final class ApiController extends \Phalcon\Mvc\Controller {
             return [[
                 'status' => 'ok',
                 'message' => 'Succeeded!',
+                'authenticate' => [
+                    'id' => $user->id
+                ]
             ], 200];
         } catch(\Phalcon\Mvc\Model\Transaction\Failed $e) {
             return [[

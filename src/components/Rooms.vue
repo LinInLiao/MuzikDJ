@@ -1,5 +1,5 @@
 <template lang="jade">
-section
+section.mdl-grid
   .mdl-cell.mdl-cell--4-col.mdl-cell--12-col-phone(v-for="room in rooms")
     .mdl-card.mdl-shadow--2dp.listen-rooms-card(v-bind:style="roomCover(room)")
       .mdl-card__title.mdl-card--expand

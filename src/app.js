@@ -21,6 +21,8 @@ import AccountEdit from './components/AccountEdit.vue'
 import AccountRooms from './components/AccountRooms.vue'
 import AccountFavorite from './components/AccountFavorite.vue'
 
+let gaExt = require('./plugins/gaExt')
+
 Vue.use(VueRouter)
 Vue.use(VueYouTubeEmbed)
 Vue.prototype.$swal = swal
@@ -111,6 +113,13 @@ const router = new VueRouter({
       component: Homepage
     }
   ]
+})
+
+router.afterEach((to, from) => {
+  // Send GA
+  gaExt.doPageViewBeacon({
+    page: to.path
+  })
 })
 
 sync(store, router)

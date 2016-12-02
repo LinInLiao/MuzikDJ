@@ -3,6 +3,7 @@
     <mz-header></mz-header>
     <router-view></router-view>
     <mz-footer></mz-footer>
+    <div id="gaConf" :data-conf="gaOptions"></div>
   </div>
 </template>
 
@@ -25,6 +26,15 @@ export default {
       this.setUserToken(token)
       this.checkToken(token)
     }
+  },
+  data () {
+    return {
+      gaOptions: {
+      }
+    }
+  },
+  mounted () {
+    console.log(this.$el.children[0].parentElement)
   }
 }
 </script>
@@ -32,3 +42,4 @@ export default {
 <style lang="scss">
 @import './styles/style.scss';
 </style>
+

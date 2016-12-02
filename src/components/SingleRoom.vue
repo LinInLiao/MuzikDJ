@@ -10,7 +10,7 @@ main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
         button.mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect.m-button--full-transparent.m-font__lato--thin(type="button", @click="join()") Join
         br
         span.s-error-message.m-font__lato--thin(v-if="error === 'password'") Password is invalid.
-    //- video-bg.video-player--masker(video-id="youtubeId", content-z-index="999", loop="false", mute="false", mobile-image="'../assets/logo.svg'", player-callback="videoCallback(player)", state-callback="playerStateChange(event)")
+    video-background(:video-id="youtubeId", :content-z-index="999", :loop="false", :mute="false", :player-callback="videoCallback")
   .mdl-grid(v-if="roomCheck === true")
     section.mdl-cell.mdl-cell--10-col.mdl-cell--4-col-phone.m-box--align-center
       form.m-add-url__form(action="#")
@@ -29,7 +29,7 @@ main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
             th.color--light-blue.m-font__lato--thin.song-remove  
         tbody
           tr.song(v-bind:class="{ playing: playingStatus.id === song.id }", v-for="(song, key) in getSingleRoomSongs")
-            td.mdl-data-table__cell--non-numeric.song-cover(:style="{ backgroundImage: 'url(' + song.cover + ')' }", @click="play(song)")
+            td.mdl-data-table__cell--non-numeric.song-cover(:style="{ backgroundImage: 'url(' + song.cover + ')' }", @click="play(key)")
               i.material-icons.icon--floating(v-bind:class="{ 'color--light-blue': playingStatus.id === song.id }") play_circle_filled
             td.mdl-data-table__cell--non-numeric.m-font__lato--thin.song-title {{ song.name }}
             td.m-font__lato--thin.song-dj {{ song.dj }}
@@ -41,53 +41,94 @@ main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
 <script>
 import { mapActions, mapGetters } from 'vuex'
 
+import VideoBackground from './VideoBackground.vue'
+
 export default {
   name: 'singleRoom',
+  components: {
+    'video-background': VideoBackground
+  },
   beforeRouteEnter (to, from, next) {
     next(vm => {
       if (typeof to.params.alias === 'undefined') {
         vm.$router.push({ name: 'error' })
       }
+      if (typeof to.query.token !== 'undefined') {
+        if (to.query.token !== '') {
+          vm.setRoomToken(to.query.token)
+        }
+      }
       if (typeof vm.getSingleRoom.status === 'undefined') {
         vm.checkRoom(to.params.alias).then((res) => {
           if (res.status === 'public') {
-            vm.fetchSingleRoomSongs(to.params.alias)
+            vm.fetchSingleRoomSongs(to.params.alias).then(() => {
+              vm.getYoutubeId(vm.getSingleRoomSongs[0]['url'])
+            })
           }
         }, () => {
           vm.$router.push({ name: 'error' })
         })
       } else {
         if (vm.getSingleRoom.status === 'public') {
-          vm.fetchSingleRoomSongs(to.params.alias)
+          vm.fetchSingleRoomSongs(to.params.alias).then(() => {
+            vm.getYoutubeId(vm.getSingleRoomSongs[0]['url'])
+          })
         }
       }
     })
   },
   computed: Object.assign(
     mapGetters([
+      'getRoomToken',
       'getSingleRoom',
       'getSingleRoomSongs'
     ]),
     {
       roomCheck () {
         return typeof this.getSingleRoom.status !== 'undefined'
-          ? (this.getSingleRoom.status === 'private' ? 'login' : true) : false
+          ? (this.getSingleRoom.status === 'private'
+            ? (this.roomPrivateCheck ? true : 'login') : true) : false
       }
     }
   ),
   methods: Object.assign(
     mapActions([
+      'setRoomToken',
       'checkRoom',
       'fetchSingleRoomSongs',
       'joinPrivateRoom',
       'createSongForRoom'
     ]),
     {
+      videoCallback (player) {
+        this.player = player
+        this.play(0)
+      },
       remove (index) {
 
       },
-      play (song) {
-
+      play (index) {
+        if (typeof this.player !== 'undefined') {
+          if (this.getSingleRoomSongs.length > 0 && this.playingStatus.index !== index) {
+            let song = this.getSingleRoomSongs[index]
+            if (song === undefined) {
+              song = this.getSingleRoomSongs[0]
+              index = 0
+            }
+            this.getYoutubeId(song.url)
+            this.playingStatus.id = song.id
+            this.playingStatus.index = index
+            this.player.loadVideoById(this.youtubeId)
+          }
+        }
+      },
+      getYoutubeId (url) {
+        let videoId = url.split('v=')[1]
+        let ampersandPosition = videoId.indexOf('&')
+        if (ampersandPosition >= 0) {
+          videoId = videoId.substring(0, ampersandPosition)
+        }
+        this.youtubeId = videoId
       },
       add () {
         this.createSongForRoom({
@@ -95,11 +136,11 @@ export default {
           url: this.songUrl
         }).then(() => {
           // DO NOTHING.
-        }, (error) => {
+        }, (err) => {
           this.$swal({
             title: 'Oops!',
             type: 'error',
-            text: error.message
+            text: err.message
           })
         })
       },
@@ -107,13 +148,20 @@ export default {
         this.joinPrivateRoom({
           alias: this.getSingleRoom.alias,
           password: this.roomPassword
-        }).then(() => {
+        }).then((res) => {
+          this.roomPrivateCheck = true
+          this.setRoomToken(res.token)
+          this.$router.replace({
+            query: {
+              token: res.token
+            }
+          })
           this.fetchSingleRoomSongs(this.getSingleRoom.alias)
-        }, (error) => {
+        }, (err) => {
           this.$swal({
             title: 'Oops!',
             type: 'error',
-            text: error.message
+            text: err.message
           })
         })
       }
@@ -124,9 +172,14 @@ export default {
       error: '',
       songUrl: '',
       roomPassword: '',
+      roomPrivateCheck: false,
       playingStatus: {
+        playing: false,
+        index: -1,
         id: ''
-      }
+      },
+      youtubeId: '',
+      player: undefined
     }
   }
 }
