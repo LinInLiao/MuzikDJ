@@ -381,24 +381,37 @@ final class ApiController extends \Phalcon\Mvc\Controller {
 
             parse_str(parse_url($url, PHP_URL_QUERY), $queries);
             if (isset($queries['v'])) {
-                $youtube_data = file_get_contents('https://www.googleapis.com/youtube/v3/videos?id='.$queries['v'].'&part=snippet&key='.YOUTUBE_API_KEY);
-                $youtube_data = json_decode($youtube_data, true);
-                if (isset($youtube_data['items'][0]['snippet']['thumbnails'])) {
-                    $cover = $youtube_data['items'][0]['snippet']['thumbnails'];
-                    if (isset($cover['high'])) {
-                        $cover = $cover['high']['url'];
-                    } elseif (isset($cover['default'])) {
-                        $cover = $cover['default']['url'];
-                    } elseif (isset($cover['standard'])) {
-                        $cover = $cover['standard']['url'];
-                    } else {
-                        $cover = 'https://i.ytimg.com/vi/79uuj5hXsOg/sddefault.jpg';
-                    }
+                $endpoint = 'https://www.googleapis.com/youtube/v3/videos?id='.$queries['v'].'&part=snippet&key='.YOUTUBE_API_KEY;
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $endpoint);
+                if (ENVIRONMENT === 'production') {
+                    curl_setopt($ch, CURLOPT_REFERER, 'https://muzikdj.tw');
+                } else {
+                    curl_setopt($ch, CURLOPT_REFERER, 'http://muzikdj.dev');
                 }
-                $youtube_data = array(
-                    'title' => $youtube_data['items'][0]['snippet']['title'],
-                    'cover' => $cover,
-                );
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                $result = curl_exec($ch);
+                curl_close($ch);
+                $youtube_data = json_decode($result, true);
+
+                if (!is_null($youtube_data)) {
+                    if (isset($youtube_data['items'][0]['snippet']['thumbnails'])) {
+                        $cover = $youtube_data['items'][0]['snippet']['thumbnails'];
+                        if (isset($cover['high'])) {
+                            $cover = $cover['high']['url'];
+                        } elseif (isset($cover['default'])) {
+                            $cover = $cover['default']['url'];
+                        } elseif (isset($cover['standard'])) {
+                            $cover = $cover['standard']['url'];
+                        } else {
+                            $cover = 'https://i.ytimg.com/vi/79uuj5hXsOg/sddefault.jpg';
+                        }
+                    }
+                    $youtube_data = array(
+                        'title' => $youtube_data['items'][0]['snippet']['title'],
+                        'cover' => $cover,
+                    );
+                }
             } else {
                 $youtube_data = null;
             }
@@ -522,10 +535,55 @@ final class ApiController extends \Phalcon\Mvc\Controller {
                 ], 405];
             }
         } else {
+            parse_str(parse_url($url, PHP_URL_QUERY), $queries);
+            if (isset($queries['v'])) {
+                $endpoint = 'https://www.googleapis.com/youtube/v3/videos?id='.$queries['v'].'&part=snippet&key='.YOUTUBE_API_KEY;
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $endpoint);
+                if (ENVIRONMENT === 'production') {
+                    curl_setopt($ch, CURLOPT_REFERER, 'https://muzikdj.tw');
+                } else {
+                    curl_setopt($ch, CURLOPT_REFERER, 'http://muzikdj.dev');
+                }
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                $result = curl_exec($ch);
+                curl_close($ch);
+                $youtube_data = json_decode($result, true);
+
+                if (!is_null($youtube_data)) {
+                    if (isset($youtube_data['items'][0]['snippet']['thumbnails'])) {
+                        $cover = $youtube_data['items'][0]['snippet']['thumbnails'];
+                        if (isset($cover['high'])) {
+                            $cover = $cover['high']['url'];
+                        } elseif (isset($cover['default'])) {
+                            $cover = $cover['default']['url'];
+                        } elseif (isset($cover['standard'])) {
+                            $cover = $cover['standard']['url'];
+                        } else {
+                            $cover = 'https://i.ytimg.com/vi/79uuj5hXsOg/sddefault.jpg';
+                        }
+                    }
+                    $youtube_data = array(
+                        'title' => $youtube_data['items'][0]['snippet']['title'],
+                        'cover' => $cover,
+                    );
+                }
+            } else {
+                $youtube_data = null;
+            }
+
+            if (empty($youtube_data)) {
+                return [[
+                    'status' => 'error',
+                    'message' => 'Youtube data not found.',
+                ], 404];
+            }
+
             return [[
-                'status' => 'error',
-                'message' => 'Room not found.',
-            ], 404];
+                'status' => 'ok',
+                'message' => 'Succeeded!',
+                'result' => $youtube_data
+            ], 200];
         }
     }
 

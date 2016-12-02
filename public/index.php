@@ -14,7 +14,11 @@ if (!defined('ENVIRONMENT')) {
     unset($environment);
 }
 
-define('YOUTUBE_API_KEY', getenv('YOUTUBE_API_KEY'));
+if (ENVIRONMENT === 'production') {
+    define('YOUTUBE_API_KEY', getenv('YOUTUBE_API_KEY'));
+} else {
+    define('YOUTUBE_API_KEY', 'AIzaSyCw8tJZsPinlT35pjMMAtyp_OFFuNtyx70');
+}
 
 require (ROOT . DS .'vendor'. DS .'autoload.php');
 
