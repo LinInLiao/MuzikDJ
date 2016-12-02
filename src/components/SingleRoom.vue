@@ -102,7 +102,7 @@ export default {
     {
       videoCallback (player) {
         this.player = player
-        this.play(0)
+        this.play(this.playingStatus.index === -1 ? 0 : this.playingStatus.index)
       },
       stateCallback (state) {
         if (state === window.YT.PlayerState.ENDED) {
@@ -125,6 +125,9 @@ export default {
             this.playingStatus.index = index
             this.player.loadVideoById(this.youtubeId)
           }
+        } else {
+          this.playingStatus.index = index
+          window.onYouTubeIframeAPIReady()
         }
       },
       getPlaylist () {
@@ -182,13 +185,6 @@ export default {
       }
     }
   ),
-  mounted () {
-    setTimeout(() => {
-      if (typeof this.player === 'undefined') {
-        window.onYouTubeIframeAPIReady()
-      }
-    }, 100)
-  },
   data () {
     return {
       error: '',

@@ -145,11 +145,6 @@ export default {
         this.$el.style.right = '0px'
         this.$el.style.bottom = '0px'
       }
-      content.style.position = 'absolute'
-      content.style.left = '0px'
-      content.style.top = '0px'
-      content.style.right = '0px'
-      content.style.bottom = '0px'
       content.style.zIndex = this.contentZIndex || 99
     },
     updateDimensions () {
@@ -258,6 +253,12 @@ export default {
           }
         }
       }
+      setTimeout(() => {
+        this.$nextTick(() => {
+          this.updateDimensions()
+          this.resizeAndPositionPlayer()
+        })
+      }, 10)
     }
   },
   created () {
@@ -369,6 +370,7 @@ export default {
     right: 0;
     bottom: 0;
     background: url(../assets/dot_masker.png) left bottom repeat rgba(0, 0, 0, 0.36);
-    z-index: 1000;
+    z-index: 99;
+    filter: blur(5px) sepia(100%);
 }
 </style>
