@@ -10,7 +10,7 @@ main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
         button.mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect.m-button--full-transparent.m-font__lato--thin(type="button", @click="join()") Join
         br
         span.s-error-message.m-font__lato--thin(v-if="error === 'password'") Password is invalid.
-    video-background(:video-id="youtubeId", :content-z-index="999", :loop="false", :mute="false", :player-callback="videoCallback")
+    video-background(:playlist="playlist", :content-z-index="999", :loop="false", :mute="false", :player-callback="videoCallback")
   .mdl-grid(v-if="roomCheck === true")
     section.mdl-cell.mdl-cell--10-col.mdl-cell--4-col-phone.m-box--align-center
       form.m-add-url__form(action="#")
@@ -62,7 +62,7 @@ export default {
         vm.checkRoom(to.params.alias).then((res) => {
           if (res.status === 'public') {
             vm.fetchSingleRoomSongs(to.params.alias).then(() => {
-              vm.getYoutubeId(vm.getSingleRoomSongs[0]['url'])
+              vm.getPlaylist()
             })
           }
         }, () => {
@@ -71,7 +71,7 @@ export default {
       } else {
         if (vm.getSingleRoom.status === 'public') {
           vm.fetchSingleRoomSongs(to.params.alias).then(() => {
-            vm.getYoutubeId(vm.getSingleRoomSongs[0]['url'])
+            vm.getPlaylist()
           })
         }
       }
@@ -120,6 +120,15 @@ export default {
             this.playingStatus.index = index
             this.player.loadVideoById(this.youtubeId)
           }
+        }
+      },
+      getPlaylist () {
+        if (this.getSingleRoomSongs.length > 0) {
+          return this.getSingleRoomSongs.map((video) => {
+            return {
+              videoId: this.getYoutubeId(video.url)
+            }
+          })
         }
       },
       getYoutubeId (url) {
@@ -178,7 +187,7 @@ export default {
         index: -1,
         id: ''
       },
-      youtubeId: '',
+      playlist: [],
       player: undefined
     }
   }
