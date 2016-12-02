@@ -1,11 +1,12 @@
 <template lang="jade">
 main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
   .mdl-grid.m-section__header
+    video-background(:playlist="playlist", :content-z-index="999", :loop="false", :mute="false", :player-callback="videoCallback", :state-callback="stateCallback")
     section.mdl-cell.mdl-cell--10-col.mdl-cell--4-col-phone.m-section__header
       h1.e-slogan.m-inline--align-center.color--light-blue Anonymous
   .mdl-grid
     section.mdl-cell.mdl-cell--10-col.mdl-cell--4-col-phone.m-box--align-center
-      form.m-add-url__form(action="#")
+      .m-add-url__form
         .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
           input#url.mdl-textfield__input.m-font__lato--thin(type="url", pattern="^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?", v-model="url")
           label.mdl-textfield__label.m-font__lato--thin(for="url") Youtube URL
@@ -19,23 +20,113 @@ main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
             th.mdl-data-table__cell--non-numeric.color--light-blue.m-font__lato--thin.song-title Title
             th.color--light-blue.m-font__lato--thin.song-dj DJ
         tbody
-          tr.song(v-bind:class="{ playing: playingStatus.id === song.id }", @click="play($event, $index)", v-for="song in songs")
+          tr.song(v-bind:class="{ playing: playingStatus.id === index }", @click.prevent="play(index)", v-for="(song, index) in songs")
             td.mdl-data-table__cell--non-numeric.song-cover(v-bind:style="{ backgroundImage: 'url(' + song.cover + ')' }")
-              i.mdi.icon--floating(v-bind:class="playingStatus.id === song.id ? ['mdi-play-circle','color--light-blue'] : ['mdi-pause-circle']")
+              i.material-icons.icon--floating(v-bind:class="{ 'color--light-blue': playingStatus.id === index }") play_circle_filled
             td.mdl-data-table__cell--non-numeric.m-font__lato--thin.song-title {{ song.name }}
             td.m-font__lato--thin.song-dj {{ song.dj }}
-    youtube-video(video-url="youtubeUrl", player-vars="youtubePlayerVars", player="youtubePlayer", style="display:none;width:0px;height:0px;")
 </template>
 
 <script>
+const request = require('superagent')
+const CREATE_SONG = process.env.API_END_POINT + '/song/create'
+
+import VideoBackground from './VideoBackground.vue'
+
 export default {
   name: 'playlist',
+  components: {
+    'video-background': VideoBackground
+  },
   methods: {
-    play () {
-
+    videoCallback (player) {
+      this.player = player
+    },
+    stateCallback (state) {
+      if (state === window.YT.PlayerState.ENDED) {
+        this.play(this.playingStatus.index + 1)
+      }
+    },
+    getYoutubeId (url) {
+      let videoId = decodeURIComponent(url).split('v=')[1]
+      let ampersandPosition = videoId.indexOf('&')
+      if (ampersandPosition >= 0) {
+        videoId = videoId.substring(0, ampersandPosition)
+      }
+      this.youtubeId = videoId
+      return videoId
+    },
+    play (index) {
+      if (typeof this.player !== 'undefined') {
+        if (this.songs.length > 0 && this.playingStatus.index !== index) {
+          let song = this.songs[index]
+          if (song === undefined) {
+            song = this.songs[0]
+            index = 0
+          }
+          this.getYoutubeId(song.url)
+          this.playingStatus.id = song.id
+          this.playingStatus.index = index
+          this.player.loadVideoById(this.youtubeId)
+        }
+      } else {
+        this.playingStatus.index = index
+        window.onYouTubeIframeAPIReady()
+      }
     },
     add () {
-
+      request
+        .post(CREATE_SONG)
+        .send({
+          url: this.url
+        })
+        .end((err, res) => {
+          if (err) {
+            this.$swal({
+              title: 'Oops!',
+              type: 'error',
+              text: 'Yuotube URL invalid.'
+            })
+          } else {
+            const response = JSON.parse(res.text)
+            if (typeof response.status !== 'undefined') {
+              if (response.status === 'ok') {
+                this.$nextTick(() => {
+                  this.songs.push({
+                    name: response.result.title,
+                    cover: response.result.cover,
+                    url: this.url,
+                    dj: 'MuizkDJ'
+                  })
+                  this.playlist.push({
+                    videoId: this.getYoutubeId(this.url)
+                  })
+                  this.$nextTick(() => {
+                    this.url = ''
+                  })
+                })
+              } else {
+                this.$swal({
+                  title: 'Oops!',
+                  type: 'error',
+                  text: response.message
+                })
+                this.$nextTick(() => {
+                  this.url = ''
+                })
+              }
+            } else {
+              this.$swal({
+                title: 'Oops!',
+                type: 'error',
+                text: 'Yuotube URL invalid.'
+              })
+              this.$nextTick(() => {
+                this.url = ''
+              })
+            }
+          }
+        })
     }
   },
   data () {
@@ -44,8 +135,12 @@ export default {
       error: '',
       songs: [],
       playingStatus: {
+        playing: false,
+        index: -1,
         id: ''
-      }
+      },
+      playlist: [],
+      player: undefined
     }
   }
 }

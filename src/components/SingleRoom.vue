@@ -26,7 +26,7 @@ main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
             th.mdl-data-table__cell--non-numeric.color--light-blue.m-font__lato--thin.song-cover Cover
             th.mdl-data-table__cell--non-numeric.color--light-blue.m-font__lato--thin.song-title Title
             th.color--light-blue.m-font__lato--thin.song-dj DJ
-            th.color--light-blue.m-font__lato--thin.song-remove  
+            th.color--light-blue.m-font__lato--thin.song-remove
         tbody
           tr.song(v-bind:class="{ playing: playingStatus.id === song.id }", v-for="(song, key) in getSingleRoomSongs")
             td.mdl-data-table__cell--non-numeric.song-cover(:style="{ backgroundImage: 'url(' + song.cover + ')' }", @click="play(key)")
@@ -97,7 +97,8 @@ export default {
       'checkRoom',
       'fetchSingleRoomSongs',
       'joinPrivateRoom',
-      'createSongForRoom'
+      'createSongForRoom',
+      'removeSongForRoom'
     ]),
     {
       videoCallback (player) {
@@ -110,7 +111,18 @@ export default {
         }
       },
       remove (index) {
-
+        this.removeSongForRoom({
+          songId: this.getSingleRoomSongs[index].id,
+          roomId: this.getSingleRoom.id
+        }).then(() => {
+          // DO NOTHING.
+        }, (err) => {
+          this.$swal({
+            title: 'Oops!',
+            type: 'error',
+            text: err.message
+          })
+        })
       },
       play (index) {
         if (typeof this.player !== 'undefined') {
@@ -153,7 +165,9 @@ export default {
           room: this.getSingleRoom.alias,
           url: this.songUrl
         }).then(() => {
-          // DO NOTHING.
+          this.$nextTick(() => {
+            this.songUrl = ''
+          })
         }, (err) => {
           this.$swal({
             title: 'Oops!',

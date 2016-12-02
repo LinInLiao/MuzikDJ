@@ -13,19 +13,19 @@ main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
       h3.e-slogan.m-font__lato--thin.color--light-blue.m-- MuzikDJ
       .mdl-grid.pt-
         .mdl-cell.mdl-cell--3-col
-          a.m-link__card(href="/create/room")
+          router-link.m-link__card(:to="{ name: 'createRoom' }")
             .mdl-card.mdl-shadow--2dp.muzikdj-card
             span.e-description.m-font__lato--thin Create Room
         .mdl-cell.mdl-cell--3-col
-          a.m-link__card(href="/search")
+          router-link.m-link__card(:to="{ name: 'search' }")
             .mdl-card.mdl-shadow--2dp.muzikdj-card
             span.e-description.m-font__lato--thin Search Room
         .mdl-cell.mdl-cell--3-col
-          a.m-link__card(href="/playlist")
+          router-link.m-link__card(:to="{ name: 'playlist' }")
             .mdl-card.mdl-shadow--2dp.muzikdj-card
             span.e-description.m-font__lato--thin Add To Playlist
         .mdl-cell.mdl-cell--3-col
-          a.m-link__card(href="/listen")
+          router-link.m-link__card(:to="{ name: 'listen' }")
             .mdl-card.mdl-shadow--2dp.muzikdj-card
             span.e-description.m-font__lato--thin Listen Now
 </template>

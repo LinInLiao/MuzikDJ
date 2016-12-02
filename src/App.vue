@@ -27,6 +27,9 @@ export default {
       this.checkToken(token)
     }
   },
+  mounted () {
+    document.documentElement.classList.add('mdl-js')
+  },
   data () {
     return {
       gaOptions: {

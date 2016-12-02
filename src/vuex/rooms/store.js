@@ -2,6 +2,8 @@ import {
   ROOMS,
   SINGLE_ROOM,
   SINGLE_ROOM_SONGS,
+  APPEND_ROOM_SONG,
+  REMOVE_SINGLE_SONG,
   ACCOUNT_ROOMS,
   ROOM_TOKEN
 } from '../mutation-types'
@@ -25,6 +27,17 @@ const mutations = {
   },
   [SINGLE_ROOM_SONGS] (state, data) {
     state.singleRoomSongs = data
+  },
+  [APPEND_ROOM_SONG] (state, data) {
+    state.singleRoomSongs.unshift(data)
+  },
+  [REMOVE_SINGLE_SONG] (state, data) {
+    const index = state.singleRoomSongs.findIndex((song) => {
+      return song.id === data
+    })
+    if (index > -1) {
+      state.singleRoomSongs.splice(index, 1)
+    }
   },
   [ACCOUNT_ROOMS] (state, data) {
     state.accountRooms = data

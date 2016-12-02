@@ -16,7 +16,10 @@ export const checkToken = ({ commit }, token) => {
       })
       .end((err, res) => {
         if (err) {
-          return reject(JSON.parse(err.text))
+          return reject({
+            status: 'err',
+            message: 'Need login.'
+          })
         }
         const response = JSON.parse(res.text)
         if (typeof response.status !== 'undefined') {
@@ -34,7 +37,7 @@ export const checkToken = ({ commit }, token) => {
         } else {
           return reject({
             status: 'err',
-            message: 'Login failed.'
+            message: 'Need login.'
           })
         }
       })
@@ -63,7 +66,10 @@ export const userSignup = ({ commit }, payload) => {
       })
       .end((res, err) => {
         if (err) {
-          return reject(JSON.parse(err.text))
+          return reject({
+            status: 'err',
+            message: 'Need login.'
+          })
         }
         const response = JSON.parse(res.text)
         if (typeof response.status !== 'undefined') {
@@ -95,7 +101,10 @@ export const login = ({ commit }, loginData) => {
       .send(loginData)
       .end((err, res) => {
         if (err) {
-          return reject(JSON.parse(err.text))
+          return reject({
+            status: 'err',
+            message: 'Need login.'
+          })
         }
         const response = JSON.parse(res.text)
         if (typeof response.status !== 'undefined') {

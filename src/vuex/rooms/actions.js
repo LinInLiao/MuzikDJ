@@ -7,6 +7,7 @@ const ACCOUNT_ROOMS = API_END_POINT + '/account/rooms'
 const SEARCH_ROOMS = API_END_POINT + '/search'
 const CREATE_ROOM = API_END_POINT + '/room/create'
 const LISTEN_ROOMS = API_END_POINT + '/listen/rooms'
+const REMOVE_SONG = API_END_POINT + '/song/remove'
 let SINGLE_ROOM_SONGS = API_END_POINT + '/room'
 
 import * as types from '../mutation-types'
@@ -23,7 +24,10 @@ export const createRoom = ({ commit, rootState }, payload) => {
       })
       .end((err, res) => {
         if (err) {
-          return reject(JSON.parse(err.text))
+          return reject({
+            status: 'err',
+            message: 'Need login.'
+          })
         }
         const response = JSON.parse(res.text)
         if (typeof response.status !== 'undefined') {
@@ -38,7 +42,7 @@ export const createRoom = ({ commit, rootState }, payload) => {
         } else {
           return reject({
             status: 'err',
-            message: 'Login failed.'
+            message: 'Need login.'
           })
         }
       })
@@ -51,7 +55,10 @@ export const listenRooms = ({ commit }) => {
       .post(LISTEN_ROOMS)
       .end((err, res) => {
         if (err) {
-          return reject(JSON.parse(err.text))
+          return reject({
+            status: 'err',
+            message: 'Need login.'
+          })
         }
         const response = JSON.parse(res.text)
         if (typeof response.status !== 'undefined') {
@@ -67,7 +74,7 @@ export const listenRooms = ({ commit }) => {
         } else {
           return reject({
             status: 'err',
-            message: 'Login failed.'
+            message: 'Need login.'
           })
         }
       })
@@ -83,7 +90,10 @@ export const searchRoom = ({ commit }, keyword) => {
       })
       .end((err, res) => {
         if (err) {
-          return reject(JSON.parse(err.text))
+          return reject({
+            status: 'err',
+            message: 'Need login.'
+          })
         }
         const response = JSON.parse(res.text)
         if (typeof response.status !== 'undefined') {
@@ -99,7 +109,7 @@ export const searchRoom = ({ commit }, keyword) => {
         } else {
           return reject({
             status: 'err',
-            message: 'Login failed.'
+            message: 'Need login.'
           })
         }
       })
@@ -113,7 +123,10 @@ export const fetchAccountRooms = ({ commit, rootState }) => {
       .set('Authorization', 'Bearer ' + rootState.users.token)
       .end((err, res) => {
         if (err) {
-          return reject(JSON.parse(err.text))
+          return reject({
+            status: 'err',
+            message: 'Need login.'
+          })
         }
         const response = JSON.parse(res.text)
         if (typeof response.status !== 'undefined') {
@@ -129,26 +142,34 @@ export const fetchAccountRooms = ({ commit, rootState }) => {
         } else {
           return reject({
             status: 'err',
-            message: 'Login failed.'
+            message: 'Need login.'
           })
         }
       })
   })
 }
 
-export const createSongForRoom = ({ commit }, creds) => {
+export const removeSongForRoom = ({ commit, rootState }, payload) => {
   return new Promise((resolve, reject) => {
     request
-      .post(CREATE_SONG_FOR_ROOM)
-      .send(creds)
+      .post(REMOVE_SONG)
+      .set('Authorization', 'Bearer ' + rootState.users.token)
+      .send({
+        id: payload.songId,
+        room: payload.roomId
+      })
       .end((err, res) => {
         if (err) {
-          return reject(JSON.parse(err.text))
+          return reject({
+            status: 'err',
+            message: 'Need login.'
+          })
         }
         const response = JSON.parse(res.text)
         if (typeof response.status !== 'undefined') {
           if (response.status === 'ok') {
-            return resolve()
+            commit(types.REMOVE_SINGLE_SONG, payload.songId)
+            return resolve(response.result)
           } else {
             return reject({
               status: 'err',
@@ -158,7 +179,40 @@ export const createSongForRoom = ({ commit }, creds) => {
         } else {
           return reject({
             status: 'err',
-            message: 'Login failed.'
+            message: 'Need login.'
+          })
+        }
+      })
+  })
+}
+
+export const createSongForRoom = ({ commit, state }, creds) => {
+  return new Promise((resolve, reject) => {
+    request
+      .post(CREATE_SONG_FOR_ROOM)
+      .send(creds)
+      .end((err, res) => {
+        if (err) {
+          return reject({
+            status: 'err',
+            message: 'Need login.'
+          })
+        }
+        const response = JSON.parse(res.text)
+        if (typeof response.status !== 'undefined') {
+          if (response.status === 'ok') {
+            commit(types.APPEND_ROOM_SONG, response.result)
+            return resolve(response.result)
+          } else {
+            return reject({
+              status: 'err',
+              message: response.message
+            })
+          }
+        } else {
+          return reject({
+            status: 'err',
+            message: 'Need login.'
           })
         }
       })
@@ -172,7 +226,10 @@ export const joinPrivateRoom = ({ commit }, creds) => {
       .send(creds)
       .end((err, res) => {
         if (err) {
-          return reject(JSON.parse(err.text))
+          return reject({
+            status: 'err',
+            message: 'Need login.'
+          })
         }
         const response = JSON.parse(res.text)
         if (typeof response.status !== 'undefined') {
@@ -188,7 +245,7 @@ export const joinPrivateRoom = ({ commit }, creds) => {
         } else {
           return reject({
             status: 'err',
-            message: 'Login failed.'
+            message: 'Need login.'
           })
         }
       })
@@ -206,7 +263,10 @@ export const fetchSingleRoomSongs = ({ commit, rootState }, alias) => {
     })
     .end((err, res) => {
       if (err) {
-        return reject(JSON.parse(err.text))
+        return reject({
+          status: 'err',
+          message: 'Need login.'
+        })
       }
       const response = JSON.parse(res.text)
       if (typeof response.status !== 'undefined') {
@@ -222,7 +282,7 @@ export const fetchSingleRoomSongs = ({ commit, rootState }, alias) => {
       } else {
         return reject({
           status: 'err',
-          message: 'Login failed.'
+          message: 'Need login.'
         })
       }
     })
@@ -245,7 +305,10 @@ export const checkRoom = ({ commit, rootState }, alias) => {
     })
     .end((err, res) => {
       if (err) {
-        return reject(JSON.parse(err.text))
+        return reject({
+          status: 'err',
+          message: 'Need login.'
+        })
       }
       const response = JSON.parse(res.text)
       if (typeof response.status !== 'undefined') {
@@ -261,7 +324,7 @@ export const checkRoom = ({ commit, rootState }, alias) => {
       } else {
         return reject({
           status: 'err',
-          message: 'Login failed.'
+          message: 'Need login.'
         })
       }
     })

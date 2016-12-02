@@ -1,5 +1,5 @@
 <template>
-<div>
+<div class="video-background-player">
   <div></div>
   <div class="video-player--masker"></div>
 </div>
@@ -192,8 +192,12 @@ export default {
       }
     },
     windowResized () {
-      this.updateDimensions()
-      this.resizeAndPositionPlayer()
+      setTimeout(() => {
+        this.$nextTick(() => {
+          this.updateDimensions()
+          this.resizeAndPositionPlayer()
+        })
+      }, 100)
     },
     seekToStart (video) {
       video = video || this
@@ -205,6 +209,8 @@ export default {
       this.$el.parentElement.style.backgroundPosition = 'center center'
     },
     playerReady () {
+      this.mPlayer = this.$el.children[0]
+
       if (typeof this.playerCallback === 'function') {
         setTimeout(() => {
           this.playerCallback(this.player)
@@ -228,7 +234,10 @@ export default {
         this.stateCallback(evt.data)
       }
       if (evt.data === window.YT.PlayerState.PLAYING) {
-        this.mPlayer.style.display = 'block'
+        this.$nextTick(() => {
+          this.mPlayer.style.display = 'block'
+        })
+
         if (!this.playlist.length > 0 && this.loop) {
           this.loopVideo()
         }
@@ -236,13 +245,17 @@ export default {
           this.playlistVideoChange()
         }
       }
+
       if (evt.data === window.YT.PlayerState.UNSTARTED && this.playlist.length > 0) {
         let videoObj = this.playlist[this.player.getPlaylistIndex()]
-        let videoMute = typeof videoObj.mute === 'undefined' ? this.mute : videoObj.mute
-        this.backgroundImage = videoObj.mobileImage || this.mobileImage || 'https://img.youtube.com/vi/' + videoObj.videoId + '/maxresdefault.jpg'
-        this.setBackgroundImage(this.backgroundImage)
-        this.mPlayer.style.display = 'none'
-        this.seekToStart(videoObj)
+        let videoMute
+        if (typeof videoObj !== 'undefined') {
+          videoMute = typeof videoObj.mute === 'undefined' ? this.mute : videoObj.mute
+          this.backgroundImage = videoObj.mobileImage || this.mobileImage || 'https://img.youtube.com/vi/' + videoObj.videoId + '/maxresdefault.jpg'
+          this.setBackgroundImage(this.backgroundImage)
+          this.seekToStart(videoObj)
+        }
+
         if (videoMute || (videoMute && this.mute)) {
           if (!this.player.isMuted()) {
             this.player.mute()
@@ -252,13 +265,11 @@ export default {
             this.player.unMute()
           }
         }
-      }
-      setTimeout(() => {
         this.$nextTick(() => {
-          this.updateDimensions()
-          this.resizeAndPositionPlayer()
+          this.mPlayer.style.display = 'block'
         })
-      }, 10)
+      }
+      this.windowResized()
     }
   },
   created () {
@@ -271,28 +282,25 @@ export default {
     window.onYouTubeIframeAPIReady = () => {
       this.updateDimensions()
       let playerOptions = {
-        autoplay: 1,
+        autoplay: 0,
         controls: 0,
         iv_load_policy: 3,
         cc_load_policy: 0,
         modestbranding: 1,
         playsinline: 1,
         rel: 0,
-        showinfo: 0,
-        playlist: this.videoId
+        showinfo: 0
       }
 
       this.player = new window.YT.Player(this.playerId, {
         width: this.playerDimensions.width,
         height: this.playerDimensions.height,
-        videoId: this.videoId,
         playerVars: playerOptions,
         events: {
           onReady: this.playerReady,
           onStateChange: this.playerStateChange
         }
       })
-      this.mPlayer.style.display = 'block'
       this.resizeAndPositionPlayer()
     }
   },
@@ -300,6 +308,7 @@ export default {
     this.mPlayer = this.$el.children[0]
     this.playerId = 'player' + Array.prototype.slice.call(document.querySelectorAll('div[video-id]')).indexOf(this.$el)
     this.mPlayer.setAttribute('id', this.playerId)
+    this.mPlayer.style.display = 'none'
 
     window.addEventListener('resize', this.windowResized)
 
@@ -361,6 +370,9 @@ export default {
 </script>
 
 <style>
+.video-background-player > iframe {
+  height: 100%;
+}
 .video-player--masker::after {
     content: "";
     display: block;

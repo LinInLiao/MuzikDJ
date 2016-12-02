@@ -1,6 +1,6 @@
 require('font-awesome/css/font-awesome.css')
 require('sweetalert2/dist/sweetalert2.css')
-require('material-design-lite/dist/material.indigo-amber.min.css')
+require('material-design-lite/dist/material.amber-indigo.min.css')
 require('material-design-lite/dist/material.min.js')
 require('./plugins/gaExt.js')
 require('./app')

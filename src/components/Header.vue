@@ -1,13 +1,13 @@
 <template lang="jade">
 header.mdl-layout__header.mdl-layout__header--transparent
   .mdl-layout__header-row
-    a(href="/")
+    router-link(:to="{ name: 'homepage' }")
       img.mdl-layout-title(src="../assets/logo.svg")
     .mdl-layout-spacer
     nav.mdl-navigation
-      a.mdl-navigation__link.m-font__lato--thin(v-if="!isLogin", href="/login")
+      router-link.mdl-navigation__link.m-font__lato--thin(:to="{ name: 'login' }", v-if="!isLogin")
         span.color--light-blue Login
-      a.mdl-navigation__link.m-font__lato--thin(v-if="!isLogin", href="/signup")
+      router-link.mdl-navigation__link.m-font__lato--thin(:to="{ name: 'signup' }", v-if="!isLogin")
         span.color--light-blue Sign up
       .mdl-navigation__link.m-font__lato--thin.user__name(v-if="isLogin")
         span.m-font__lato--thin.color--light-blue {{ getUserData.name }}

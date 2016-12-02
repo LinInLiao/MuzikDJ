@@ -116,6 +116,10 @@ const router = new VueRouter({
 })
 
 router.afterEach((to, from) => {
+  // Upgrades all MDL components found in the current DOM.
+  Vue.nextTick(() => {
+    window.componentHandler.upgradeDom()
+  })
   // Send GA
   gaExt.doPageViewBeacon({
     page: to.path
