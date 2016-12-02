@@ -10,7 +10,7 @@ main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
         button.mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect.m-button--full-transparent.m-font__lato--thin(type="button", @click="join()") Join
         br
         span.s-error-message.m-font__lato--thin(v-if="error === 'password'") Password is invalid.
-    video-background(:playlist="playlist", :content-z-index="999", :loop="false", :mute="false", :player-callback="videoCallback")
+    video-background(:playlist="playlist", :content-z-index="999", :loop="false", :mute="false", :player-callback="videoCallback", :state-callback="stateCallback")
   .mdl-grid(v-if="roomCheck === true")
     section.mdl-cell.mdl-cell--10-col.mdl-cell--4-col-phone.m-box--align-center
       form.m-add-url__form(action="#")
@@ -104,6 +104,11 @@ export default {
         this.player = player
         this.play(0)
       },
+      stateCallback (state) {
+        if (state === window.YT.PlayerState.ENDED) {
+          this.play(this.playingStatus.index + 1)
+        }
+      },
       remove (index) {
 
       },
@@ -177,6 +182,13 @@ export default {
       }
     }
   ),
+  mounted () {
+    setTimeout(() => {
+      if (typeof this.player === 'undefined') {
+        window.onYouTubeIframeAPIReady()
+      }
+    }, 100)
+  },
   data () {
     return {
       error: '',

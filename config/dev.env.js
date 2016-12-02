@@ -3,5 +3,6 @@ var prodEnv = require('./prod.env')
 
 module.exports = merge(prodEnv, {
   NODE_ENV: '"development"',
-  GA: ''
+  GA: '',
+  API_END_POINT: '"http://muzikdj.dev/api"'
 })

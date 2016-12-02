@@ -54,19 +54,9 @@ export default {
     },
     playerCallback: {
       type: Function
-    }
-  },
-  created () {
-    // if (this.videoId === '' && this.playlist.length === 0) {
-    //   throw new Error('Either video-id or playlist must be defined.')
-    // }
-    // if (this.videoId !== '' && this.playlist.length > 0) {
-    //   throw new Error('Both video-id and playlist cannot be defined, please choose one or the other.')
-    // }
-    if (this.playlist.length > 0) {
-      this.videoArr = this.playlist.map((videoObj) => {
-        return videoObj.videoId
-      })
+    },
+    stateCallback: {
+      type: Function
     }
   },
   methods: {
@@ -214,6 +204,11 @@ export default {
       video = video || this
       this.player.seekTo(video.start || 0)
     },
+    setBackgroundImage (img) {
+      this.$el.parentElement.style.backgroundImage = 'url(' + img + ')'
+      this.$el.parentElement.style.backgroundSize = 'cover'
+      this.$el.parentElement.style.backgroundPosition = 'center center'
+    },
     playerReady () {
       if (typeof this.playerCallback === 'function') {
         setTimeout(() => {
@@ -233,12 +228,10 @@ export default {
       }
       this.seekToStart()
     },
-    setBackgroundImage (img) {
-      this.$el.parentElement.style.backgroundImage = 'url(' + img + ')'
-      this.$el.parentElement.style.backgroundSize = 'cover'
-      this.$el.parentElement.style.backgroundPosition = 'center center'
-    },
     playerStateChange (evt) {
+      if (typeof this.stateCallback === 'function') {
+        this.stateCallback(evt.data)
+      }
       if (evt.data === window.YT.PlayerState.PLAYING) {
         this.mPlayer.style.display = 'block'
         if (!this.playlist.length > 0 && this.loop) {
@@ -251,7 +244,7 @@ export default {
       if (evt.data === window.YT.PlayerState.UNSTARTED && this.playlist.length > 0) {
         let videoObj = this.playlist[this.player.getPlaylistIndex()]
         let videoMute = typeof videoObj.mute === 'undefined' ? this.mute : videoObj.mute
-        this.backgroundImage = videoObj.mobileImage || this.mobileImage || '//img.youtube.com/vi/' + videoObj.videoId + '/maxresdefault.jpg'
+        this.backgroundImage = videoObj.mobileImage || this.mobileImage || 'https://img.youtube.com/vi/' + videoObj.videoId + '/maxresdefault.jpg'
         this.setBackgroundImage(this.backgroundImage)
         this.mPlayer.style.display = 'none'
         this.seekToStart(videoObj)
@@ -267,17 +260,11 @@ export default {
       }
     }
   },
-  mounted () {
-    this.mPlayer = this.$el.children[0]
-    this.playerId = 'player' + Array.prototype.slice.call(document.querySelectorAll('div[video-id]')).indexOf(this.$el)
-    this.mPlayer.setAttribute('id', this.playerId)
-
-    const ytScript = document.querySelector('script[src="//www.youtube.com/iframe_api"]')
-    if (!ytScript) {
-      let tag = document.createElement('script')
-      tag.src = '//www.youtube.com/iframe_api'
-      let firstScriptTag = document.getElementsByTagName('script')[0]
-      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
+  created () {
+    if (this.playlist.length > 0) {
+      this.videoArr = this.playlist.map((videoObj) => {
+        return videoObj.videoId
+      })
     }
 
     window.onYouTubeIframeAPIReady = () => {
@@ -307,13 +294,27 @@ export default {
       this.mPlayer.style.display = 'block'
       this.resizeAndPositionPlayer()
     }
+  },
+  mounted () {
+    this.mPlayer = this.$el.children[0]
+    this.playerId = 'player' + Array.prototype.slice.call(document.querySelectorAll('div[video-id]')).indexOf(this.$el)
+    this.mPlayer.setAttribute('id', this.playerId)
+
     window.addEventListener('resize', this.windowResized)
+
+    const ytScript = document.querySelector('script[src="https://www.youtube.com/iframe_api"]')
+    if (!ytScript) {
+      let tag = document.createElement('script')
+      tag.src = 'https://www.youtube.com/iframe_api'
+      let firstScriptTag = document.getElementsByTagName('script')[0]
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
+    }
   },
   watch: {
     videoId (current, old) {
       if (current && old && current !== old) {
         clearTimeout(this.videoTimeout)
-        this.backgroundImage = this.mobileImage || '//img.youtube.com/vi/' + current + '/maxresdefault.jpg'
+        this.backgroundImage = this.mobileImage || 'https://img.youtube.com/vi/' + current + '/maxresdefault.jpg'
         this.setBackgroundImage(this.backgroundImage)
         this.mPlayer.style.display = 'none'
         this.player.loadVideoById(current)
