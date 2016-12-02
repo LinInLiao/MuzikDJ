@@ -132,12 +132,13 @@ export default {
         }
       },
       getYoutubeId (url) {
-        let videoId = url.split('v=')[1]
+        let videoId = decodeURIComponent(url).split('v=')[1]
         let ampersandPosition = videoId.indexOf('&')
         if (ampersandPosition >= 0) {
           videoId = videoId.substring(0, ampersandPosition)
         }
         this.youtubeId = videoId
+        return videoId
       },
       add () {
         this.createSongForRoom({

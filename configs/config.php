@@ -17,7 +17,7 @@ return [
 		'production' => [
 			'dbhost' => '127.0.0.1',
 			'dbusername' => 'root',
-			'dbpassword' => 'caline0125',
+			'dbpassword' => 'Caline01@%',
 			'dbname' => 'muzikdj'
 		]
 	],

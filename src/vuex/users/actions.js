@@ -1,10 +1,10 @@
 const request = require('superagent')
-const API_END_POINT = 'http://muzikdj.dev/api'
+const API_END_POINT = process.env.API_END_POINT
 const LOGIN = API_END_POINT + '/login'
 const SIGNUP = API_END_POINT + '/signup'
 const CHECK_TOKEN = API_END_POINT + '/auth/check'
-import * as types from '../mutation-types'
 
+import * as types from '../mutation-types'
 import cookies from '../../plugins/cookies'
 
 export const checkToken = ({ commit }, token) => {

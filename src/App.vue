@@ -32,9 +32,6 @@ export default {
       gaOptions: {
       }
     }
-  },
-  mounted () {
-    console.log(this.$el.children[0].parentElement)
   }
 }
 </script>

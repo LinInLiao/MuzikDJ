@@ -152,8 +152,14 @@ export default {
         this.$el.style.position = 'absolute'
         this.$el.style.left = '0px'
         this.$el.style.top = '0px'
+        this.$el.style.right = '0px'
+        this.$el.style.bottom = '0px'
       }
-      content.style.position = 'relative'
+      content.style.position = 'absolute'
+      content.style.left = '0px'
+      content.style.top = '0px'
+      content.style.right = '0px'
+      content.style.bottom = '0px'
       content.style.zIndex = this.contentZIndex || 99
     },
     updateDimensions () {
@@ -212,7 +218,7 @@ export default {
       if (typeof this.playerCallback === 'function') {
         setTimeout(() => {
           this.playerCallback(this.player)
-        }, 100)
+        }, 10)
       }
       if (this.playlist.length > 0) {
         this.player.loadPlaylist(this.videoArr)
@@ -267,56 +273,41 @@ export default {
     this.mPlayer.setAttribute('id', this.playerId)
 
     const ytScript = document.querySelector('script[src="//www.youtube.com/iframe_api"]')
-
-    if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-      let ytd
-
-      if (!window.youTubeIframeAPIReady) {
-        ytd = Promise
-        window.youTubeIframeAPIReady = ytd.resolve()
-        window.onYouTubeIframeAPIReady = () => {
-          ytd.resolve()
-        }
-      }
-
-      if (!ytScript) {
-        let tag = document.createElement('script')
-        tag.src = '//www.youtube.com/iframe_api'
-        let firstScriptTag = document.getElementsByTagName('script')[0]
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
-      } else if (ytd) {
-        ytd.resolve()
-      }
-      window.youTubeIframeAPIReady.then(() => {
-        this.updateDimensions()
-        let playerOptions = {
-          autoplay: 1,
-          controls: 0,
-          iv_load_policy: 3,
-          cc_load_policy: 0,
-          modestbranding: 1,
-          playsinline: 1,
-          rel: 0,
-          showinfo: 0,
-          playlist: this.videoId
-        }
-
-        this.player = new window.YT.Player(this.playerId, {
-          width: this.playerDimensions.width,
-          height: this.playerDimensions.height,
-          videoId: this.videoId,
-          playerVars: playerOptions,
-          events: {
-            onReady: this.playerReady,
-            onStateChange: this.playerStateChange
-          }
-        })
-        this.mPlayer = this.$el.children[0]
-        this.mPlayer.style.display = 'block'
-        this.resizeAndPositionPlayer()
-      })
-      window.addEventListener('resize', this.windowResized)
+    if (!ytScript) {
+      let tag = document.createElement('script')
+      tag.src = '//www.youtube.com/iframe_api'
+      let firstScriptTag = document.getElementsByTagName('script')[0]
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
     }
+
+    window.onYouTubeIframeAPIReady = () => {
+      this.updateDimensions()
+      let playerOptions = {
+        autoplay: 1,
+        controls: 0,
+        iv_load_policy: 3,
+        cc_load_policy: 0,
+        modestbranding: 1,
+        playsinline: 1,
+        rel: 0,
+        showinfo: 0,
+        playlist: this.videoId
+      }
+
+      this.player = new window.YT.Player(this.playerId, {
+        width: this.playerDimensions.width,
+        height: this.playerDimensions.height,
+        videoId: this.videoId,
+        playerVars: playerOptions,
+        events: {
+          onReady: this.playerReady,
+          onStateChange: this.playerStateChange
+        }
+      })
+      this.mPlayer.style.display = 'block'
+      this.resizeAndPositionPlayer()
+    }
+    window.addEventListener('resize', this.windowResized)
   },
   watch: {
     videoId (current, old) {
@@ -346,7 +337,9 @@ export default {
       clearTimeout(this.videoTimeout)
     }
     window.removeEventListener('resize', this.windowResized)
-    this.player.destroy()
+    if (this.player !== null && typeof this.player !== 'undefined') {
+      this.player.destroy()
+    }
   },
   data () {
     return {

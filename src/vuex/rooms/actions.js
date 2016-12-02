@@ -1,5 +1,5 @@
 const request = require('superagent')
-const API_END_POINT = 'http://muzikdj.dev/api'
+const API_END_POINT = process.env.API_END_POINT
 const ROOM_CHECK = API_END_POINT + '/room/check'
 const JOIN_PRIVATE_ROOM = API_END_POINT + '/room/private'
 const CREATE_SONG_FOR_ROOM = API_END_POINT + '/song/create'
@@ -8,6 +8,7 @@ const SEARCH_ROOMS = API_END_POINT + '/search'
 const CREATE_ROOM = API_END_POINT + '/room/create'
 const LISTEN_ROOMS = API_END_POINT + '/listen/rooms'
 let SINGLE_ROOM_SONGS = API_END_POINT + '/room'
+
 import * as types from '../mutation-types'
 
 export const createRoom = ({ commit, rootState }, payload) => {

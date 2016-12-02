@@ -21,7 +21,6 @@ require (ROOT . DS .'vendor'. DS .'autoload.php');
 use \Phalcon\Config\Adapter\Php as configPhpAdapter;
 use \Phalcon\Db\Adapter\Pdo\Mysql as DbAdapter;
 use \Phalcon\Session\Adapter\Libmemcached as Session;
-use \Phalcon\Mvc\Model\Metadata;
 
 /**
  * The FactoryDefault Dependency Injector automatically register the right services providing a full stack framework
@@ -81,17 +80,6 @@ try {
             'password'  => $db_config->dbpassword,
             'dbname'    => $db_config->dbname
         ));
-    });
-
-    /**
-     * If the configuration specify the use of metadata adapter use it or use memory otherwise
-     */
-    $di->setShared('modelsMetadata', function() use ($config) {
-        if (isset($config->metadata) && ENVIRONMENT === 'production') {
-            $metadataAdapter = 'Metadata\\' . $config->metadata->adapter;
-            return new $metadataAdapter();
-        }
-        return new Metadata\Memory();
     });
 
     /**
