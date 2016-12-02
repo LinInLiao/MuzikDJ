@@ -364,3 +364,17 @@ export default {
   }
 }
 </script>
+
+<style>
+.video-player--masker::after {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url(../assets/dot_masker.png) left bottom repeat rgba(0, 0, 0, 0.36);
+    z-index: 1000;
+}
+</style>
