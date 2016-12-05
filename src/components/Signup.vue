@@ -9,7 +9,7 @@ main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
           label.mdl-textfield__label.m-font__lato--thin(for="name") Name
         span.s-error-message.m-font__lato--thin(v-if="error === 'username'") Name is required.
         .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
-          input#email.mdl-textfield__input.m-font__lato--thin(type="email", pattern="[^@]+@[^@]+\.[a-zA-Z]{2,6}", v-model="email")
+          input#email.mdl-textfield__input.m-font__lato--thin(type="email", v-model="email")
           label.mdl-textfield__label.m-font__lato--thin(for="email") Email
         span.s-error-message.m-font__lato--thin(v-if="error === 'email'") E-mail is required.
         .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label

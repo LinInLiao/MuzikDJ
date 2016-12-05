@@ -5,7 +5,7 @@ main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
       form.m-signup__form
         h2.e-slogan.color--light-blue.m-font__lato--thin Login
         .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
-          input#email.mdl-textfield__input.m-font__lato--thin(type="text", pattern="[^@]+@[^@]+\.[a-zA-Z]{2,6}", v-model="email")
+          input#email.mdl-textfield__input.m-font__lato--thin(type="text", v-model="email")
           label.mdl-textfield__label.m-font__lato--thin(for="email") Email
         .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
           input#password.mdl-textfield__input.m-font__lato--thin(type="password", v-model="password")

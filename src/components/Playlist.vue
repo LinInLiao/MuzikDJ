@@ -8,7 +8,7 @@ main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
     section.mdl-cell.mdl-cell--10-col.mdl-cell--4-col-phone.m-box--align-center
       .m-add-url__form
         .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
-          input#url.mdl-textfield__input.m-font__lato--thin(type="url", pattern="^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?", v-model="url")
+          input#url.mdl-textfield__input.m-font__lato--thin(type="url", v-model="url")
           label.mdl-textfield__label.m-font__lato--thin(for="url") Youtube URL
         span.s-error-message.m-font__lato--thin(v-if="error === 'url'") URL is invalid.
         button.mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect.m-button--full-transparent.m-font__lato--thin(type="button", @click="add()") Add To Playlist
