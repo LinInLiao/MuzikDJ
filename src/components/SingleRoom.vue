@@ -58,21 +58,32 @@ export default {
           vm.setRoomToken(to.query.token)
         }
       }
-      if (typeof vm.getSingleRoom.status === 'undefined') {
-        vm.checkRoom(to.params.alias).then((res) => {
-          if (res.status === 'public') {
-            vm.fetchSingleRoomSongs(to.params.alias).then(() => {
+
+      checkRoom()
+
+      async function checkRoom () {
+        if (typeof vm.getSingleRoom.status === 'undefined') {
+          let room = await vm.checkRoom(to.params.alias).catch(reason => vm.$router.push({ name: 'error' }))
+          if (typeof room === 'undefined') {
+            vm.$router.push({ name: 'error' })
+          }
+          if (room.status === 'public') {
+            await vm.fetchSingleRoomSongs(to.params.alias).then(() => {
+              vm.getPlaylist()
+            }).catch(reason => {
+              console.log(reason)
               vm.getPlaylist()
             })
           }
-        }, () => {
-          vm.$router.push({ name: 'error' })
-        })
-      } else {
-        if (vm.getSingleRoom.status === 'public') {
-          vm.fetchSingleRoomSongs(to.params.alias).then(() => {
-            vm.getPlaylist()
-          })
+        } else {
+          if (vm.getSingleRoom.status === 'public') {
+            await vm.fetchSingleRoomSongs(to.params.alias).then(() => {
+              vm.getPlaylist()
+            }).catch(reason => {
+              console.log(reason)
+              vm.getPlaylist()
+            })
+          }
         }
       }
     })
@@ -85,6 +96,7 @@ export default {
     ]),
     {
       roomCheck () {
+        console.log(this.getSingleRoom.status)
         return typeof this.getSingleRoom.status !== 'undefined'
           ? (this.getSingleRoom.status === 'private'
             ? (this.roomPrivateCheck ? true : 'login') : true) : false

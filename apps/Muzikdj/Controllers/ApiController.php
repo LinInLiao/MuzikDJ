@@ -684,33 +684,35 @@ final class ApiController extends \Phalcon\Mvc\Controller {
                 $user_room = false;
             }
             if ($room->status === 'private') {
-                $token = $this->request->get('token');
-                if (false === $user_room || empty($token)) {
-                    return [[
-                        'status' => 'err',
-                        'message' => 'This room need password.',
-                    ], 403];
-                }
+                if ($user_room === false) {
+                    $token = $this->request->get('token');
+                    if (empty($token)) {
+                        return [[
+                            'status' => 'err',
+                            'message' => 'This room need password.',
+                        ], 403];
+                    }
 
-                $token = JWT::decode($token, $this->config->cookie->crypt, ['HS256']);
-                if (is_null($token)) {
-                    return [[
-                        'status' => 'err',
-                        'message' => 'This room need password.',
-                    ], 403];
-                }
-                if (time() > $token->exp) {
-                    return [[
-                        'status' => 'err',
-                        'message' => 'This room need password.',
-                    ], 403];
-                }
-                $room_token = (array) $token->sub;
-                if ($room_token['id'] !== $room->id) {
-                    return [[
-                        'status' => 'err',
-                        'message' => 'This room need password.',
-                    ], 403];
+                    $token = JWT::decode($token, $this->config->cookie->crypt, ['HS256']);
+                    if (is_null($token)) {
+                        return [[
+                            'status' => 'err',
+                            'message' => 'This room need password.',
+                        ], 403];
+                    }
+                    if (time() > $token->exp) {
+                        return [[
+                            'status' => 'err',
+                            'message' => 'This room need password.',
+                        ], 403];
+                    }
+                    $room_token = (array) $token->sub;
+                    if ($room_token['id'] !== $room->id) {
+                        return [[
+                            'status' => 'err',
+                            'message' => 'This room need password.',
+                        ], 403];
+                    }
                 }
             }
 
