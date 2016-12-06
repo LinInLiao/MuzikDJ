@@ -12,11 +12,13 @@ import { mapActions } from 'vuex'
 import cookies from './plugins/cookies'
 import Header from './components/Header.vue'
 import Footer from './components/Footer.vue'
+// import Player from './components/Player.vue'
 
 export default {
   name: 'app',
   components: {
     'mz-header': Header,
+    // 'mz-player': Player,
     'mz-footer': Footer
   },
   methods: mapActions(['checkToken', 'setUserToken']),

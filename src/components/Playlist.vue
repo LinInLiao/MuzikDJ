@@ -1,7 +1,7 @@
 <template lang="jade">
 main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
   .mdl-grid.m-section__header
-    video-background(:playlist="playlist", :content-z-index="999", :loop="false", :mute="false", :player-callback="videoCallback", :state-callback="stateCallback")
+    video-background(:playlist="playlist", :content-z-index="999", :loop="false", :mute="false", @ready="readyCallback", @ended="endedCallback")
     section.mdl-cell.mdl-cell--10-col.mdl-cell--4-col-phone.m-section__header
       h1.e-slogan.m-inline--align-center.color--light-blue Anonymous
   .mdl-grid
@@ -31,30 +31,14 @@ main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
 const request = require('superagent')
 const CREATE_SONG = process.env.API_END_POINT + '/song/create'
 
-import VideoBackground from './VideoBackground.vue'
-
 export default {
   name: 'playlist',
-  components: {
-    'video-background': VideoBackground
-  },
   methods: {
-    videoCallback (player) {
+    readyCallback (player) {
       this.player = player
     },
-    stateCallback (state) {
-      if (state === window.YT.PlayerState.ENDED) {
-        this.play(this.playingStatus.index + 1)
-      }
-    },
-    getYoutubeId (url) {
-      let videoId = decodeURIComponent(url).split('v=')[1]
-      let ampersandPosition = videoId.indexOf('&')
-      if (ampersandPosition >= 0) {
-        videoId = videoId.substring(0, ampersandPosition)
-      }
-      this.youtubeId = videoId
-      return videoId
+    endedCallback () {
+      this.play(this.playingStatus.index + 1)
     },
     play (index) {
       if (typeof this.player !== 'undefined') {
@@ -64,10 +48,9 @@ export default {
             song = this.songs[0]
             index = 0
           }
-          this.getYoutubeId(song.url)
           this.playingStatus.id = song.id
           this.playingStatus.index = index
-          this.player.loadVideoById(this.youtubeId)
+          this.player.loadVideoById(this.$videoBackground.getIdFromURL(song.url))
         }
       } else {
         this.playingStatus.index = index
@@ -99,7 +82,7 @@ export default {
                     dj: 'MuizkDJ'
                   })
                   this.playlist.push({
-                    videoId: this.getYoutubeId(this.url)
+                    videoId: this.$videoBackground.getIdFromURL(this.url)
                   })
                   this.$nextTick(() => {
                     this.url = ''

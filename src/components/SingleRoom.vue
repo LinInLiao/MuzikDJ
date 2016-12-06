@@ -10,7 +10,7 @@ main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
         button.mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect.m-button--full-transparent.m-font__lato--thin(type="button", @click="join()") Join
         br
         span.s-error-message.m-font__lato--thin(v-if="error === 'password'") Password is invalid.
-    video-background(:playlist="playlist", :content-z-index="999", :loop="false", :mute="false", :player-callback="videoCallback", :state-callback="stateCallback")
+    video-background(:playlist="playlist", :content-z-index="999", :loop="false", :mute="false", @ready="readyCallback", @ended="endedCallback")
   .mdl-grid(v-if="roomCheck === true")
     section.mdl-cell.mdl-cell--10-col.mdl-cell--4-col-phone.m-box--align-center
       form.m-add-url__form(action="#")
@@ -41,13 +41,8 @@ main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
 <script>
 import { mapActions, mapGetters } from 'vuex'
 
-import VideoBackground from './VideoBackground.vue'
-
 export default {
   name: 'singleRoom',
-  components: {
-    'video-background': VideoBackground
-  },
   beforeRouteEnter (to, from, next) {
     next(vm => {
       if (typeof to.params.alias === 'undefined') {
@@ -112,14 +107,12 @@ export default {
       'removeSongForRoom'
     ]),
     {
-      videoCallback (player) {
+      readyCallback (player) {
         this.player = player
         this.play(this.playingStatus.index === -1 ? 0 : this.playingStatus.index)
       },
-      stateCallback (state) {
-        if (state === window.YT.PlayerState.ENDED) {
-          this.play(this.playingStatus.index + 1)
-        }
+      endedCallback () {
+        this.play(this.playingStatus.index + 1)
       },
       remove (index) {
         this.removeSongForRoom({
@@ -143,10 +136,9 @@ export default {
               song = this.getSingleRoomSongs[0]
               index = 0
             }
-            this.getYoutubeId(song.url)
             this.playingStatus.id = song.id
             this.playingStatus.index = index
-            this.player.loadVideoById(this.youtubeId)
+            this.player.loadVideoById(this.$videoBackground.getIdFromURL(song.url))
           }
         } else {
           this.playingStatus.index = index
@@ -157,19 +149,10 @@ export default {
         if (this.getSingleRoomSongs.length > 0) {
           return this.getSingleRoomSongs.map((video) => {
             return {
-              videoId: this.getYoutubeId(video.url)
+              videoId: this.$videoBackground.getIdFromURL(video.url)
             }
           })
         }
-      },
-      getYoutubeId (url) {
-        let videoId = decodeURIComponent(url).split('v=')[1]
-        let ampersandPosition = videoId.indexOf('&')
-        if (ampersandPosition >= 0) {
-          videoId = videoId.substring(0, ampersandPosition)
-        }
-        this.youtubeId = videoId
-        return videoId
       },
       add () {
         this.createSongForRoom({
