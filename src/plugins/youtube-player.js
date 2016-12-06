@@ -399,7 +399,13 @@ export const VideoBackgroundPlayer = {
           }
         }
       })
+      window.addEventListener('resize', this.windowResized)
     })
+  },
+  methods: {
+    windowResized (evt) {
+      windowResized(evt, this)
+    }
   },
   watch: {
     videoId (current, old) {
@@ -429,6 +435,8 @@ export const VideoBackgroundPlayer = {
       this.player.destroy()
     }
     delete this.player
+
+    window.removeEventListener('resize', this.windowResized)
   }
 }
 
