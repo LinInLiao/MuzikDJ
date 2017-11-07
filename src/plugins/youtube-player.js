@@ -470,8 +470,13 @@ export function install (Vue) {
   } else {
     style.appendChild(document.createTextNode(css))
   }
-  const firstStyleTag = document.getElementsByTagName('style')[0]
-  firstStyleTag.parentNode.insertBefore(style, firstStyleTag)
+  let firstStyleTag = document.getElementsByTagName('style')[0]
+  if (typeof firstStyleTag !== 'undefined') {
+    firstStyleTag.parentNode.insertBefore(style, firstStyleTag)
+  } else {
+    firstStyleTag = document.getElementsByTagName('link')[0]
+    firstStyleTag.parentNode.insertBefore(style, firstStyleTag)
+  }
 
   const tag = document.createElement('script')
   tag.src = 'https://www.youtube.com/player_api'
