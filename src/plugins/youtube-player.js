@@ -391,8 +391,8 @@ export const VideoBackgroundPlayer = {
           onStateChange: (event) => {
             if (event.data !== -1) {
               this.$emit(events[event.data], event.target)
-              playerStateChange(event, YouTube, this)
             }
+            playerStateChange(event, YouTube, this)
           },
           onError: (event) => {
             this.$emit('error', event.target)
@@ -413,7 +413,7 @@ export const VideoBackgroundPlayer = {
         clearTimeout(this.videoTimeout)
         const backgroundImage = this.mobileImage || 'https://img.youtube.com/vi/' + current + '/maxresdefault.jpg'
         setBackgroundImage(backgroundImage)
-        this.mPlayer.style.display = 'none'
+        this.mPlayer.style.display = 'block'
         this.player.loadVideoById(current)
       }
     },
@@ -423,9 +423,13 @@ export const VideoBackgroundPlayer = {
         this.videoArr = current.map((videoObj) => {
           return videoObj.videoId
         })
-        this.player.loadPlaylist(this.videoArr)
-        if (this.loop) {
-          this.player.setLoop(true)
+        if (typeof this.player !== 'undefined' &&
+          typeof this.player.loadPlaylist === 'function'
+        ) {
+          this.player.loadPlaylist(this.videoArr)
+          if (this.loop) {
+            this.player.setLoop(true)
+          }
         }
       }
     }
@@ -444,7 +448,7 @@ export const container = {
   scripts: [],
 
   run () {
-    this.scripts.forEach((callback) => {
+    this.scripts.forEach(callback => {
       callback(this.YT)
     })
     this.scripts = []
@@ -482,7 +486,7 @@ export function install (Vue) {
   const firstScriptTag = document.getElementsByTagName('script')[0]
   firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
 
-  window.onYouTubeIframeAPIReady = () => {
+  window.onYouTubePlayerAPIReady = () => {
     container.YT = window.YT
     Vue.nextTick(() => {
       container.run()

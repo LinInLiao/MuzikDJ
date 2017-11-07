@@ -4,10 +4,12 @@ export default {
     let cookies = {}
     let hasCookies = false
 
-    const all = document.cookie
-    if (all) {
-      list = all.split('; ')
-    }
+    try {
+      const all = document.cookie
+      if (all) {
+        list = all.split('; ')
+      }
+    } catch (e) {}
 
     for (let i = 0; i < list.length; ++i) {
       if (list[i]) {
@@ -43,7 +45,7 @@ export default {
       expires: new Date('Thu, 01 Jan 1970 00:00:00 GMT'),
       expirationUnit: 'seconds',
       path: '/',
-      domain: window.location.hostname,
+      domain: process.env.NODE_ENV === 'development' ? '.bhuntr.dev' : '.bhuntr.com',
       secure: ''
     }, options)
 

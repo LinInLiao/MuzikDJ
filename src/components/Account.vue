@@ -1,9 +1,9 @@
-<template lang="jade">
-  router-view
+<template>
+  <router-view/>
 </template>
 
 <script>
 export default {
-  name: 'Account'
+  name: 'account'
 }
 </script>

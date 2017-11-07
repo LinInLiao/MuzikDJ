@@ -7,7 +7,7 @@
 
 <script>
 export default {
-  name: 'videoBackgroundPlayer',
+  name: 'video-background-player',
   props: {
     videoId: {
       type: String,
@@ -60,6 +60,17 @@ export default {
     }
   },
   methods: {
+    getIdFromURL (url) {
+      const regexp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/i
+      let matches = url.match(regexp)
+      if (matches &&
+        typeof matches[2] !== 'undefined' &&
+        matches[2].length === 11
+      ) {
+        return matches[2]
+      }
+      return ''
+    },
     getPropertyAllSides (property, func) {
       const sides = ['top', 'right', 'bottom', 'left']
       let getProperty = (obj, side) => {

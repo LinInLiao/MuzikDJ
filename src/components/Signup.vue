@@ -1,4 +1,4 @@
-<template lang="jade">
+<template lang="pug">
 main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
   .mdl-grid
     section.mdl-cell.mdl-cell--3-col.mdl-cell--4-col-tablet.mdl-cell--12-col-phone.m-box--align-center
@@ -27,28 +27,26 @@ import { mapActions } from 'vuex'
 
 export default {
   name: 'signup',
-  methods: Object.assign(
-    mapActions([
-      'userSignup'
-    ]),
-    {
-      signup () {
-        this.userSignup({
-          username: this.username,
-          email: this.email,
-          password: this.password
-        }).then(() => {
-          this.$router.push({ name: 'accountEdit' })
-        }, (err) => {
-          this.$swal({
-            title: 'Oops!',
-            type: 'error',
-            text: err.message
-          })
+  methods: {
+    signup () {
+      this.userSignup({
+        username: this.username,
+        email: this.email,
+        password: this.password
+      }).then(() => {
+        this.$router.push({ name: 'accountEdit' })
+      }, (err) => {
+        this.$swal({
+          title: 'Oops!',
+          type: 'error',
+          text: err.message
         })
-      }
-    }
-  ),
+      })
+    },
+    ...mapActions({
+      userSignup: 'users/userSignup'
+    })
+  },
   data () {
     return {
       username: '',

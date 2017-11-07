@@ -1,6 +1,16 @@
-require('font-awesome/css/font-awesome.css')
-require('sweetalert2/dist/sweetalert2.css')
-require('material-design-lite/dist/material.amber-indigo.min.css')
-require('material-design-lite/dist/material.min.js')
-require('./plugins/gaExt.js')
-require('./app')
+import Vue from 'vue'
+import App from './App'
+import router from './router'
+import store from './vuex'
+import VideoBackground from './plugins/youtube-player'
+
+Vue.config.productionTip = false
+Vue.use(VideoBackground)
+
+/* eslint-disable no-new */
+new Vue({
+  el: '#app',
+  store,
+  router,
+  render: h => h(App)
+})

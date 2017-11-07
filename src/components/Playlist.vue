@@ -1,4 +1,4 @@
-<template lang="jade">
+<template lang="pug">
 main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
   .mdl-grid.m-section__header
     video-background(:playlist="playlist", :content-z-index="999", :loop="false", :mute="false", @ready="readyCallback", @ended="endedCallback")
@@ -28,7 +28,7 @@ main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
 </template>
 
 <script>
-const request = require('superagent')
+import axios from 'axios'
 const CREATE_SONG = process.env.API_END_POINT + '/song/create'
 
 export default {
@@ -58,58 +58,50 @@ export default {
       }
     },
     add () {
-      request
-        .post(CREATE_SONG)
-        .send({
+      axios({
+        url: CREATE_SONG,
+        method: 'post',
+        data: {
           url: this.url
-        })
-        .end((err, res) => {
-          if (err) {
-            this.$swal({
-              title: 'Oops!',
-              type: 'error',
-              text: 'Yuotube URL invalid.'
-            })
-          } else {
-            const response = JSON.parse(res.text)
-            if (typeof response.status !== 'undefined') {
-              if (response.status === 'ok') {
-                this.$nextTick(() => {
-                  this.songs.push({
-                    name: response.result.title,
-                    cover: response.result.cover,
-                    url: this.url,
-                    dj: 'MuizkDJ'
-                  })
-                  this.playlist.push({
-                    videoId: this.$videoBackground.getIdFromURL(this.url)
-                  })
-                  this.$nextTick(() => {
-                    this.url = ''
-                  })
+        }
+      }).then(res => {
+        let message = ''
+        let succeeded = false
+        if (typeof res.data !== 'undefined') {
+          message = res.data.message || ''
+          if (res.status >= 200 && res.status < 300) {
+            if (typeof res.data.status !== 'undefined') {
+              if (res.data.status === 'ok') {
+                this.songs.push({
+                  name: res.data.result.title,
+                  cover: res.data.result.cover,
+                  url: this.url,
+                  dj: 'MuizkDJ'
                 })
-              } else {
-                this.$swal({
-                  title: 'Oops!',
-                  type: 'error',
-                  text: response.message
+                this.playlist.push({
+                  videoId: this.$videoBackground.getIdFromURL(this.url)
                 })
-                this.$nextTick(() => {
-                  this.url = ''
-                })
-              }
-            } else {
-              this.$swal({
-                title: 'Oops!',
-                type: 'error',
-                text: 'Yuotube URL invalid.'
-              })
-              this.$nextTick(() => {
                 this.url = ''
-              })
+                succeeded = true
+              }
             }
           }
+        }
+        if (!succeeded) {
+          this.$swal({
+            title: 'Oops!',
+            type: 'error',
+            text: message
+          })
+        }
+      }, () => {
+        this.url = ''
+        this.$swal({
+          title: 'Oops!',
+          type: 'error',
+          text: 'Yuotube URL invalid.'
         })
+      })
     }
   },
   data () {

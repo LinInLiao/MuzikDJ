@@ -1,4 +1,4 @@
-<template lang="jade">
+<template lang="pug">
 section.mdl-grid
   .mdl-cell.mdl-cell--4-col.mdl-cell--12-col-phone(v-for="room in rooms")
     .mdl-card.mdl-shadow--2dp.listen-rooms-card(v-bind:style="roomCover(room)")
@@ -16,6 +16,7 @@ section.mdl-grid
 import { mapGetters } from 'vuex'
 
 export default {
+  name: 'rooms',
   props: {
     rooms: {
       type: Array,
@@ -24,7 +25,9 @@ export default {
       }
     }
   },
-  computed: mapGetters(['getUserData']),
+  computed: mapGetters({
+    getUserData: 'users/getData'
+  }),
   methods: {
     roomCover (room) {
       return {
@@ -32,7 +35,6 @@ export default {
       }
     },
     removeRoom () {
-
     }
   }
 }

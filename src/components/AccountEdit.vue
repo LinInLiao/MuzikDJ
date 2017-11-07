@@ -1,4 +1,4 @@
-<template lang="jade">
+<template lang="pug">
 main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
   .mdl-grid
     section.mdl-cell.mdl-cell--3-col.mdl-cell--4-col-tablet.mdl-cell--12-col-phone.m-box--align-center

@@ -1,4 +1,4 @@
-<template lang="jade">
+<template lang="pug">
 main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
   .mdl-grid
     .mdl-cell.mdl-cell--10-col.mdl-cell--4-col-phone.m-box--align-center
@@ -14,8 +14,6 @@ export default {
   components: {
     rooms: Rooms
   },
-  methods: mapActions(['fetchAccountRooms']),
-  computed: mapGetters(['getAccountRooms']),
   beforeRouteEnter (to, from, next) {
     next(vm => {
       vm.fetchAccountRooms().then(() => {
@@ -23,6 +21,12 @@ export default {
       })
     })
   },
+  methods: mapActions({
+    fetchAccountRooms: 'rooms/fetchAccountRooms'
+  }),
+  computed: mapGetters({
+    getAccountRooms: 'rooms/getAccountRooms'
+  }),
   data () {
     return {
       rooms: []

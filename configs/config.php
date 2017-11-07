@@ -44,7 +44,6 @@ return [
 		'prefix' => 'muzikdj',
 		'lifetime' => 8600,
 		'persistent' => 'MuzikDJ'
-
 	],
 	'cookie' => [
 		'crypt' => '9(*&^%$muzikdjERfgoboasdf19237865rvbnmkjhfde5678k',

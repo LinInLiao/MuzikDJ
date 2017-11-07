@@ -1,4 +1,7 @@
-const request = require('superagent')
+import axios from 'axios'
+import * as types from '../mutation-types'
+import { MyError, generateResponse, generateErrorResponse } from '../plugins/common'
+
 const API_END_POINT = process.env.API_END_POINT
 const ROOM_CHECK = API_END_POINT + '/room/check'
 const JOIN_PRIVATE_ROOM = API_END_POINT + '/room/private'
@@ -8,325 +11,234 @@ const SEARCH_ROOMS = API_END_POINT + '/search'
 const CREATE_ROOM = API_END_POINT + '/room/create'
 const LISTEN_ROOMS = API_END_POINT + '/listen/rooms'
 const REMOVE_SONG = API_END_POINT + '/song/remove'
-let SINGLE_ROOM_SONGS = API_END_POINT + '/room'
+const SINGLE_ROOM_SONGS = API_END_POINT + '/room'
 
-import * as types from '../mutation-types'
+const Promise = window.Promise || require('promise-polyfill')
 
-export const createRoom = ({ commit, rootState }, payload) => {
-  return new Promise((resolve, reject) => {
-    request
-      .post(CREATE_ROOM)
-      .set('Authorization', 'Bearer ' + rootState.users.token)
-      .send({
-        roomType: payload.roomType,
-        roomId: payload.roomId,
-        roomPassword: payload.roomPassword
-      })
-      .end((err, res) => {
-        if (err) {
-          return reject({
-            status: 'err',
-            message: 'Need login.'
-          })
-        }
-        const response = JSON.parse(res.text)
-        if (typeof response.status !== 'undefined') {
-          if (response.status === 'ok') {
-            return resolve(response.result)
-          } else {
-            return reject({
-              status: 'err',
-              message: response.message
-            })
-          }
-        } else {
-          return reject({
-            status: 'err',
-            message: 'Need login.'
-          })
-        }
-      })
-  })
+export const createRoom = async ({ commit, rootState }, payload) => {
+  try {
+    if (typeof rootState.users.token === 'undefined' ||
+      rootState.users.token === ''
+    ) {
+      return Promise.reject(new MyError({
+        status: 'err',
+        code: 405,
+        messages: 'User token is not defined.'
+      }))
+    }
+
+    let res = await axios({
+      url: CREATE_ROOM,
+      method: 'post',
+      headers: {
+        Authorization: 'Bearer ' + rootState.users.token
+      }
+    }).then(generateResponse, generateErrorResponse)
+
+    if (res) {
+      return res.result
+    }
+  } catch (e) {
+    return Promise.reject(new MyError(e))
+  }
 }
 
-export const listenRooms = ({ commit }) => {
-  return new Promise((resolve, reject) => {
-    request
-      .post(LISTEN_ROOMS)
-      .end((err, res) => {
-        if (err) {
-          return reject({
-            status: 'err',
-            message: 'Need login.'
-          })
-        }
-        const response = JSON.parse(res.text)
-        if (typeof response.status !== 'undefined') {
-          if (response.status === 'ok') {
-            commit(types.ROOMS, response.result)
-            return resolve(response.result)
-          } else {
-            return reject({
-              status: 'err',
-              message: response.message
-            })
-          }
-        } else {
-          return reject({
-            status: 'err',
-            message: 'Need login.'
-          })
-        }
-      })
-  })
+export const listenRooms = async ({ commit }) => {
+  try {
+    let res = await axios({
+      url: LISTEN_ROOMS,
+      method: 'post'
+    }).then(generateResponse, generateErrorResponse)
+
+    if (res) {
+      return res.result
+    }
+  } catch (e) {
+    return Promise.reject(new MyError(e))
+  }
 }
 
-export const searchRoom = ({ commit }, keyword) => {
-  return new Promise((resolve, reject) => {
-    request
-      .post(SEARCH_ROOMS)
-      .send({
+export const searchRoom = async ({ commit }, keyword) => {
+  try {
+    let res = await axios({
+      url: SEARCH_ROOMS,
+      method: 'post',
+      data: {
         keyword: keyword
-      })
-      .end((err, res) => {
-        if (err) {
-          return reject({
-            status: 'err',
-            message: 'Need login.'
-          })
-        }
-        const response = JSON.parse(res.text)
-        if (typeof response.status !== 'undefined') {
-          if (response.status === 'ok') {
-            commit(types.ROOMS, response.result)
-            return resolve(response.result)
-          } else {
-            return reject({
-              status: 'err',
-              message: response.message
-            })
-          }
-        } else {
-          return reject({
-            status: 'err',
-            message: 'Need login.'
-          })
-        }
-      })
-  })
+      }
+    }).then(generateResponse, generateErrorResponse)
+
+    if (res) {
+      commit(types.ROOMS, res.result)
+      return res.result
+    }
+  } catch (e) {
+    return Promise.reject(new MyError(e))
+  }
 }
 
-export const fetchAccountRooms = ({ commit, rootState }) => {
-  return new Promise((resolve, reject) => {
-    request
-      .post(ACCOUNT_ROOMS)
-      .set('Authorization', 'Bearer ' + rootState.users.token)
-      .end((err, res) => {
-        if (err) {
-          return reject({
-            status: 'err',
-            message: 'Need login.'
-          })
-        }
-        const response = JSON.parse(res.text)
-        if (typeof response.status !== 'undefined') {
-          if (response.status === 'ok') {
-            commit(types.ACCOUNT_ROOMS, response.result)
-            return resolve(response.result)
-          } else {
-            return reject({
-              status: 'err',
-              message: response.message
-            })
-          }
-        } else {
-          return reject({
-            status: 'err',
-            message: 'Need login.'
-          })
-        }
-      })
-  })
+export const fetchAccountRooms = async ({ commit, rootState }) => {
+  try {
+    if (typeof rootState.users.token === 'undefined' ||
+      rootState.users.token === ''
+    ) {
+      return Promise.reject(new MyError({
+        status: 'err',
+        code: 405,
+        messages: 'User token is not defined.'
+      }))
+    }
+
+    let res = await axios({
+      url: ACCOUNT_ROOMS,
+      method: 'post',
+      headers: {
+        Authorization: 'Bearer ' + rootState.users.token
+      }
+    }).then(generateResponse, generateErrorResponse)
+
+    if (res) {
+      commit(types.ACCOUNT_ROOMS, res.result)
+      return res.result
+    }
+  } catch (e) {
+    return Promise.reject(new MyError(e))
+  }
 }
 
-export const removeSongForRoom = ({ commit, rootState }, payload) => {
-  return new Promise((resolve, reject) => {
-    request
-      .post(REMOVE_SONG)
-      .set('Authorization', 'Bearer ' + rootState.users.token)
-      .send({
+export const removeSongForRoom = async ({ commit, rootState }, payload) => {
+  try {
+    if (typeof rootState.users.token === 'undefined' ||
+      rootState.users.token === ''
+    ) {
+      return Promise.reject(new MyError({
+        status: 'err',
+        code: 405,
+        messages: 'User token is not defined.'
+      }))
+    }
+
+    let res = await axios({
+      url: REMOVE_SONG,
+      method: 'post',
+      data: {
         id: payload.songId,
         room: payload.roomId
-      })
-      .end((err, res) => {
-        if (err) {
-          return reject({
-            status: 'err',
-            message: 'Need login.'
-          })
-        }
-        const response = JSON.parse(res.text)
-        if (typeof response.status !== 'undefined') {
-          if (response.status === 'ok') {
-            commit(types.REMOVE_SINGLE_SONG, payload.songId)
-            return resolve(response.result)
-          } else {
-            return reject({
-              status: 'err',
-              message: response.message
-            })
-          }
-        } else {
-          return reject({
-            status: 'err',
-            message: 'Need login.'
-          })
-        }
-      })
-  })
-}
+      },
+      headers: {
+        Authorization: 'Bearer ' + rootState.users.token
+      }
+    }).then(generateResponse, generateErrorResponse)
 
-export const createSongForRoom = ({ commit, state }, creds) => {
-  return new Promise((resolve, reject) => {
-    request
-      .post(CREATE_SONG_FOR_ROOM)
-      .send(creds)
-      .end((err, res) => {
-        if (err) {
-          return reject({
-            status: 'err',
-            message: 'Need login.'
-          })
-        }
-        const response = JSON.parse(res.text)
-        if (typeof response.status !== 'undefined') {
-          if (response.status === 'ok') {
-            commit(types.APPEND_ROOM_SONG, response.result)
-            return resolve(response.result)
-          } else {
-            return reject({
-              status: 'err',
-              message: response.message
-            })
-          }
-        } else {
-          return reject({
-            status: 'err',
-            message: 'Need login.'
-          })
-        }
-      })
-  })
-}
-
-export const joinPrivateRoom = ({ commit }, creds) => {
-  return new Promise((resolve, reject) => {
-    request
-      .post(JOIN_PRIVATE_ROOM)
-      .send(creds)
-      .end((err, res) => {
-        if (err) {
-          return reject({
-            status: 'err',
-            message: 'Need login.'
-          })
-        }
-        const response = JSON.parse(res.text)
-        if (typeof response.status !== 'undefined') {
-          if (response.status === 'ok') {
-            commit(types.ROOM_TOKEN, response.token)
-            return resolve()
-          } else {
-            return reject({
-              status: 'err',
-              message: response.message
-            })
-          }
-        } else {
-          return reject({
-            status: 'err',
-            message: 'Need login.'
-          })
-        }
-      })
-  })
-}
-
-export const fetchSingleRoomSongs = ({ commit, rootState }, alias) => {
-  return new Promise((resolve, reject) => {
-    let req = request.get(SINGLE_ROOM_SONGS + '/' + alias)
-    if (rootState.users.token !== '' && typeof rootState.users.token !== 'undefined') {
-      req.set('Authorization', 'Bearer ' + rootState.users.token)
+    if (res) {
+      commit(types.REMOVE_SINGLE_SONG, payload.songId)
+      return res.result
     }
-    req.query({
-      token: rootState.rooms.roomToken
-    })
-    .end((err, res) => {
-      if (err) {
-        return reject({
-          status: 'err',
-          message: 'Need login.'
-        })
+  } catch (e) {
+    return Promise.reject(new MyError(e))
+  }
+}
+
+export const createSongForRoom = async ({ commit, state }, creds) => {
+  try {
+    let res = await axios({
+      url: CREATE_SONG_FOR_ROOM,
+      method: 'post',
+      data: creds
+    }).then(generateResponse, generateErrorResponse)
+
+    if (res) {
+      commit(types.APPEND_ROOM_SONG, res.result)
+      return res.result
+    }
+  } catch (e) {
+    return Promise.reject(new MyError(e))
+  }
+}
+
+export const joinPrivateRoom = async ({ commit }, creds) => {
+  try {
+    let res = await axios({
+      url: JOIN_PRIVATE_ROOM,
+      method: 'post',
+      data: creds
+    }).then(generateResponse, generateErrorResponse)
+
+    if (res) {
+      commit(types.ROOM_TOKEN, res.token)
+      return res.result
+    }
+  } catch (e) {
+    return Promise.reject(new MyError(e))
+  }
+}
+
+export const fetchSingleRoomSongs = async ({ commit, rootState }, alias) => {
+  try {
+    let options = {
+      url: SINGLE_ROOM_SONGS + '/' + alias,
+      method: 'post'
+    }
+
+    if (typeof rootState.rooms.roomToken !== 'undefined' &&
+      rootState.rooms.roomToken !== ''
+    ) {
+      options.data = {
+        token: rootState.rooms.roomToken
       }
-      const response = JSON.parse(res.text)
-      if (typeof response.status !== 'undefined') {
-        if (response.status === 'ok') {
-          commit(types.SINGLE_ROOM_SONGS, response.result)
-          return resolve(response.result)
-        } else {
-          return reject({
-            status: 'err',
-            message: response.message
-          })
-        }
-      } else {
-        return reject({
-          status: 'err',
-          message: 'Need login.'
-        })
+    }
+    if (typeof rootState.users.token !== 'undefined' &&
+      rootState.users.token !== ''
+    ) {
+      options.headers = {
+        Authorization: 'Bearer ' + rootState.users.token
       }
-    })
-  })
+    }
+    let res = await axios(options)
+      .then(generateResponse, generateErrorResponse)
+
+    if (res) {
+      commit(types.SINGLE_ROOM_SONGS, res.result)
+      return res.result
+    }
+  } catch (e) {
+    return Promise.reject(new MyError(e))
+  }
 }
 
 export const setRoomToken = ({ commit }, token) => {
   commit(types.ROOM_TOKEN, token)
 }
 
-export const checkRoom = ({ commit, rootState }, alias) => {
-  return new Promise((resolve, reject) => {
-    let req = request.post(ROOM_CHECK)
-    if (rootState.users.token !== '' && typeof rootState.users.token !== 'undefined') {
-      req.set('Authorization', 'Bearer ' + rootState.users.token)
+export const checkRoom = async ({ commit, rootState }, alias) => {
+  try {
+    let options = {
+      url: ROOM_CHECK,
+      method: 'post',
+      data: {
+        alias: alias
+      }
     }
-    req.send({
-      alias: alias,
-      token: rootState.rooms.roomToken
-    })
-    .end((err, res) => {
-      if (err) {
-        return reject({
-          status: 'err',
-          message: 'Need login.'
-        })
+    if (typeof rootState.rooms.roomToken !== 'undefined' &&
+      rootState.rooms.roomToken !== ''
+    ) {
+      options.data.token = rootState.rooms.roomToken
+    }
+    if (typeof rootState.users.token !== 'undefined' &&
+      rootState.users.token !== ''
+    ) {
+      options.headers = {
+        Authorization: 'Bearer ' + rootState.users.token
       }
-      const response = JSON.parse(res.text)
-      if (typeof response.status !== 'undefined') {
-        if (response.status === 'ok') {
-          commit(types.SINGLE_ROOM, response.result)
-          return resolve(response.result)
-        } else {
-          return reject({
-            status: 'err',
-            message: response.message
-          })
-        }
-      } else {
-        return reject({
-          status: 'err',
-          message: 'Need login.'
-        })
-      }
-    })
-  })
+    }
+    let res = await axios(options)
+      .then(generateResponse, generateErrorResponse)
+
+    if (res) {
+      commit(types.SINGLE_ROOM, res.result)
+      return res.result
+    }
+  } catch (e) {
+    return Promise.reject(new MyError(e))
+  }
 }

@@ -11,8 +11,13 @@
 </template>
 
 <script>
+import VideoBackground from '@/components/VideoBackground.vue'
+
 export default {
   name: 'player',
+  compoments: {
+    videoBackground: VideoBackground
+  },
   methods: {
     readyCallback (player) {
       this.player = player
