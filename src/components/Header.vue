@@ -1,4 +1,4 @@
-<template lang="jade">
+<template lang="pug">
 header.mdl-layout__header.mdl-layout__header--transparent
   .mdl-layout__header-row
     router-link(:to="{ name: 'homepage' }")
@@ -27,21 +27,15 @@ header.mdl-layout__header.mdl-layout__header--transparent
 import { mapGetters } from 'vuex'
 
 export default {
-  computed: Object.assign(
-    mapGetters([
-      'getUserData',
-      'getToken'
-    ]),
-    {
-      isLogin () {
-        return typeof this.getUserData !== 'undefined' && typeof this.getUserData.id !== 'undefined'
-      }
+  name: 'header',
+  computed: {
+    isLogin () {
+      return typeof this.getUserData !== 'undefined' && typeof this.getUserData.id !== 'undefined'
     },
-  ),
-  data () {
-    return {
-      isLogin: false
-    }
+    ...mapGetters({
+      getUserData: 'users/getData',
+      getToken: 'users/getToken'
+    })
   }
 }
 </script>

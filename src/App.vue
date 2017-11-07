@@ -9,10 +9,17 @@
 
 <script>
 import { mapActions } from 'vuex'
-import cookies from './plugins/cookies'
-import Header from './components/Header.vue'
-import Footer from './components/Footer.vue'
+import cookies from '@/plugins/cookies'
+import Header from '@/components/Header.vue'
+import Footer from '@/components/Footer.vue'
 // import Player from './components/Player.vue'
+
+require('font-awesome/css/font-awesome.css')
+require('sweetalert2/dist/sweetalert2.css')
+require('material-design-icons/iconfont/material-icons.css')
+require('material-design-lite/dist/material.amber-indigo.min.css')
+require('material-design-lite/dist/material.min.js')
+// require('./plugins/gaExt.js')
 
 export default {
   name: 'app',
@@ -21,7 +28,10 @@ export default {
     // 'mz-player': Player,
     'mz-footer': Footer
   },
-  methods: mapActions(['checkToken', 'setUserToken']),
+  methods: mapActions({
+    checkToken: 'users/checkToken',
+    setUserToken: 'users/setUserToken'
+  }),
   created () {
     const token = cookies.get('muzikDJToken')
     if (typeof token !== 'undefined') {
@@ -44,4 +54,3 @@ export default {
 <style lang="scss">
 @import './styles/style.scss';
 </style>
-

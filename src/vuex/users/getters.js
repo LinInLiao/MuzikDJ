@@ -1,4 +1,4 @@
-export const getUserData = state => {
+export const getData = state => {
   return state.data
 }
 

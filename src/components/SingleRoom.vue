@@ -1,4 +1,4 @@
-<template lang="jade">
+<template lang="pug">
 main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
   .mdl-grid.m-section__header(v-if="roomCheck !== false")
     section.mdl-cell.mdl-cell--10-col.mdl-cell--4-col-phone.m-section__header.s-background--transparent
@@ -42,7 +42,7 @@ main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
 import { mapActions, mapGetters } from 'vuex'
 
 export default {
-  name: 'singleRoom',
+  name: 'single-room',
   beforeRouteEnter (to, from, next) {
     next(vm => {
       if (typeof to.params.alias === 'undefined') {
@@ -58,24 +58,26 @@ export default {
 
       async function checkRoom () {
         if (typeof vm.getSingleRoom.status === 'undefined') {
-          let room = await vm.checkRoom(to.params.alias).catch(reason => vm.$router.push({ name: 'error' }))
+          let room = await vm.checkRoom(to.params.alias)
           if (typeof room === 'undefined') {
             vm.$router.push({ name: 'error' })
           }
-          if (room.status === 'public') {
-            await vm.fetchSingleRoomSongs(to.params.alias).then(() => {
+          if (room.status === 'err') {
+            if (room.code === 403) {
+              vm.roomPrivateCheck = false
+            } else {
+              vm.$router.push({ name: 'error' })
+            }
+          } else if (room.status === 'public') {
+            vm.fetchSingleRoomSongs(to.params.alias).then(res => {
               vm.getPlaylist()
-            }).catch(reason => {
-              console.log(reason)
-              vm.getPlaylist()
+            }, err => {
+              console.dir(err.data)
             })
           }
         } else {
           if (vm.getSingleRoom.status === 'public') {
-            await vm.fetchSingleRoomSongs(to.params.alias).then(() => {
-              vm.getPlaylist()
-            }).catch(reason => {
-              console.log(reason)
+            vm.fetchSingleRoomSongs(to.params.alias).then(() => {
               vm.getPlaylist()
             })
           }
@@ -83,116 +85,114 @@ export default {
       }
     })
   },
-  computed: Object.assign(
-    mapGetters([
-      'getRoomToken',
-      'getSingleRoom',
-      'getSingleRoomSongs'
-    ]),
-    {
-      roomCheck () {
-        return typeof this.getSingleRoom.status !== 'undefined'
-          ? (this.getSingleRoom.status === 'private'
-            ? (this.roomPrivateCheck ? true : 'login') : true) : false
-      }
-    }
-  ),
-  methods: Object.assign(
-    mapActions([
-      'setRoomToken',
-      'checkRoom',
-      'fetchSingleRoomSongs',
-      'joinPrivateRoom',
-      'createSongForRoom',
-      'removeSongForRoom'
-    ]),
-    {
-      readyCallback (player) {
-        this.player = player
-        this.play(this.playingStatus.index === -1 ? 0 : this.playingStatus.index)
-      },
-      endedCallback () {
-        this.play(this.playingStatus.index + 1)
-      },
-      remove (index) {
-        this.removeSongForRoom({
-          songId: this.getSingleRoomSongs[index].id,
-          roomId: this.getSingleRoom.id
-        }).then(() => {
-          // DO NOTHING.
-        }, (err) => {
-          this.$swal({
-            title: 'Oops!',
-            type: 'error',
-            text: err.message
-          })
+  computed: {
+    roomCheck () {
+      return typeof this.getSingleRoom.status !== 'undefined'
+        ? (this.getSingleRoom.status === 'private'
+          ? (this.roomPrivateCheck ? true : 'login') : true) : (this.roomPrivateCheck ? true : 'login')
+    },
+    ...mapGetters({
+      getRoomToken: 'rooms/getRoomToken',
+      getSingleRoom: 'rooms/getSingleRoom',
+      getSingleRoomSongs: 'rooms/getSingleRoomSongs'
+    })
+  },
+  methods: {
+    readyCallback (player) {
+      this.player = player
+      this.play(this.playingStatus.index === -1 ? 0 : this.playingStatus.index)
+    },
+    endedCallback () {
+      this.play(this.playingStatus.index + 1)
+    },
+    remove (index) {
+      this.removeSongForRoom({
+        songId: this.getSingleRoomSongs[index].id,
+        roomId: this.getSingleRoom.id
+      }).then(() => {
+        // DO NOTHING.
+      }, (err) => {
+        this.$swal({
+          title: 'Oops!',
+          type: 'error',
+          text: err.message
         })
-      },
-      play (index) {
-        if (typeof this.player !== 'undefined') {
-          if (this.getSingleRoomSongs.length > 0 && this.playingStatus.index !== index) {
-            let song = this.getSingleRoomSongs[index]
-            if (song === undefined) {
-              song = this.getSingleRoomSongs[0]
-              index = 0
-            }
-            this.playingStatus.id = song.id
-            this.playingStatus.index = index
-            this.player.loadVideoById(this.$videoBackground.getIdFromURL(song.url))
+      })
+    },
+    play (index) {
+      if (typeof this.player !== 'undefined') {
+        if (this.getSingleRoomSongs.length > 0 && this.playingStatus.index !== index) {
+          let song = this.getSingleRoomSongs[index]
+          if (song === undefined) {
+            song = this.getSingleRoomSongs[0]
+            index = 0
           }
-        } else {
+          this.playingStatus.id = song.id
           this.playingStatus.index = index
-          window.onYouTubeIframeAPIReady()
+          let videoId = this.$videoBackground.getIdFromURL(song.url)
+          this.player.loadVideoById(videoId)
         }
-      },
-      getPlaylist () {
-        if (this.getSingleRoomSongs.length > 0) {
-          return this.getSingleRoomSongs.map((video) => {
-            return {
-              videoId: this.$videoBackground.getIdFromURL(video.url)
-            }
-          })
-        }
-      },
-      add () {
-        this.createSongForRoom({
-          room: this.getSingleRoom.alias,
-          url: this.songUrl
-        }).then(() => {
-          this.$nextTick(() => {
-            this.songUrl = ''
-          })
-        }, (err) => {
-          this.$swal({
-            title: 'Oops!',
-            type: 'error',
-            text: err.message
-          })
-        })
-      },
-      join () {
-        this.joinPrivateRoom({
-          alias: this.getSingleRoom.alias,
-          password: this.roomPassword
-        }).then((res) => {
-          this.roomPrivateCheck = true
-          this.setRoomToken(res.token)
-          this.$router.replace({
-            query: {
-              token: res.token
-            }
-          })
-          this.fetchSingleRoomSongs(this.getSingleRoom.alias)
-        }, (err) => {
-          this.$swal({
-            title: 'Oops!',
-            type: 'error',
-            text: err.message
-          })
-        })
+      } else {
+        this.playingStatus.index = index
+        window.onYouTubeIframeAPIReady()
       }
-    }
-  ),
+    },
+    getPlaylist () {
+      if (this.getSingleRoomSongs.length > 0) {
+        this.playlist = this.getSingleRoomSongs.reduce((videos, video) => {
+          videos.push({
+            videoId: this.$videoBackground.getIdFromURL(video.url)
+          })
+          return videos
+        }, [])
+      }
+    },
+    add () {
+      this.createSongForRoom({
+        room: this.getSingleRoom.alias,
+        url: this.songUrl
+      }).then(() => {
+        this.$nextTick(() => {
+          this.songUrl = ''
+        })
+      }, (err) => {
+        this.$swal({
+          title: 'Oops!',
+          type: 'error',
+          text: err.message
+        })
+      })
+    },
+    join () {
+      this.joinPrivateRoom({
+        alias: this.getSingleRoom.alias,
+        password: this.roomPassword
+      }).then((res) => {
+        this.roomPrivateCheck = true
+        this.setRoomToken(res.token)
+        this.$router.replace({
+          query: {
+            token: res.token
+          }
+        })
+        this.fetchSingleRoomSongs(this.getSingleRoom.alias)
+      }, (err) => {
+        this.$swal({
+          title: 'Oops!',
+          type: 'error',
+          text: err.message
+        })
+      })
+    },
+    ...mapActions({
+      setRoomToken: 'rooms/setRoomToken',
+      checkRoom: 'rooms/checkRoom',
+      fetchSingleRoomSongs: 'rooms/fetchSingleRoomSongs',
+      joinPrivateRoom: 'rooms/joinPrivateRoom',
+      createSongForRoom: 'rooms/createSongForRoom',
+      removeSongForRoom: 'rooms/removeSongForRoom'
+    })
+  },
   data () {
     return {
       error: '',

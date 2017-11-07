@@ -1,4 +1,4 @@
-<template lang="jade">
+<template lang="pug">
 main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
   .mdl-grid
     .mdl-cell.mdl-cell--10-col.mdl-cell--4-col-phone.m-box--align-center
@@ -7,7 +7,7 @@ main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
 
 <script>
 import { mapActions } from 'vuex'
-import Rooms from './Rooms.vue'
+import Rooms from '@/components/Rooms.vue'
 
 export default {
   name: 'listen',
@@ -21,7 +21,9 @@ export default {
       })
     })
   },
-  methods: mapActions(['listenRooms']),
+  methods: mapActions({
+    listenRooms: 'rooms/listenRooms'
+  }),
   data () {
     return {
       rooms: []
@@ -29,4 +31,3 @@ export default {
   }
 }
 </script>
-

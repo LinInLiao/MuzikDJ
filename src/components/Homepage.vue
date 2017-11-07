@@ -1,4 +1,4 @@
-<template lang="jade">
+<template lang="pug">
 main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
   .mdl-grid.m-section__header
     section.mdl-cell.mdl-cell--10-col.mdl-cell--4-col-phone.m-section__header
@@ -40,27 +40,22 @@ export default {
       roomName: ''
     }
   },
-  methods: Object.assign(
-    mapActions([
-      'checkRoom'
-    ]),
-    {
-      join () {
-        this.checkRoom(this.roomName).then((res) => {
-          this.$router.push({ name: 'singleRoom', params: { alias: res.alias } })
-        }, (err) => {
-          this.$swal({
-            title: 'Oops!',
-            type: 'error',
-            text: err.message
-          })
+  methods: {
+    join () {
+      this.checkRoom(this.roomName)
+      .then(res => {
+        this.$router.push({ name: 'singleRoom', params: { alias: res.alias } })
+      }, err => {
+        this.$swal({
+          title: 'Oops!',
+          type: 'error',
+          text: err.message
         })
-      }
-    }
-  )
+      })
+    },
+    ...mapActions({
+      checkRoom: 'rooms/checkRoom'
+    })
+  }
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-</style>

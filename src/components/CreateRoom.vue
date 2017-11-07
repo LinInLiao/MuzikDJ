@@ -1,4 +1,4 @@
-<template lang="jade">
+<template lang="pug">
 main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
   .mdl-grid
     section.mdl-cell.mdl-cell--3-col.mdl-cell--4-col-tablet.mdl-cell--12-col-phone.m-box--align-center
@@ -26,37 +26,37 @@ main.mdl-layout__content.m-content--bgc-lighter.view-change-animate
 import { mapActions } from 'vuex'
 
 export default {
-  name: 'createRoom',
+  name: 'create-room',
   computed: {
     passwordField () {
       return this.roomType === 'private'
     }
   },
-  methods: Object.assign(
-    mapActions(['createRoom']),
-    {
-      create () {
-        this.createRoom({
-          roomType: this.roomType,
-          roomId: this.roomId,
-          roomPassword: this.roomPassword
-        }).then((res) => {
-          this.$router.push({
-            name: 'singleRoom',
-            params: {
-              alias: res
-            }
-          })
-        }, (err) => {
-          this.$swal({
-            title: 'Oops!',
-            type: 'error',
-            text: err.message
-          })
+  methods: {
+    create () {
+      this.createRoom({
+        roomType: this.roomType,
+        roomId: this.roomId,
+        roomPassword: this.roomPassword
+      }).then((res) => {
+        this.$router.push({
+          name: 'singleRoom',
+          params: {
+            alias: res
+          }
         })
-      }
-    }
-  ),
+      }, (err) => {
+        this.$swal({
+          title: 'Oops!',
+          type: 'error',
+          text: err.message
+        })
+      })
+    },
+    ...mapActions({
+      createRoom: 'rooms/createRoom'
+    })
+  },
   data () {
     return {
       roomType: 'private',

@@ -639,7 +639,7 @@ final class ApiController extends \Phalcon\Mvc\Controller {
             ->innerJoin('Muzikdj\Models\SongPlaylist', 'sp.playlist_id = p.id', 'sp')
             ->innerJoin('Muzikdj\Models\Users', 'u.id = Muzikdj\Models\Songs.user_id', 'u')
             ->where('Muzikdj\Models\Songs.id = sp.song_id')
-            ->order('Muzikdj\Models\Songs.sort DESC')
+            ->orderBy('Muzikdj\Models\Songs.sort DESC')
             ->execute();
 
         if ($songs && $songs->count() > 0) {
@@ -736,7 +736,7 @@ final class ApiController extends \Phalcon\Mvc\Controller {
                 ->innerJoin('Muzikdj\Models\Users', 'u.id = Muzikdj\Models\Songs.user_id', 'u')
                 ->leftJoin('Muzikdj\Models\UserRoom', 'ur.room_id = rp.room_id', 'ur')
                 ->where('Muzikdj\Models\Songs.id = sp.song_id')
-                ->order('Muzikdj\Models\Songs.sort DESC')
+                ->orderBy('Muzikdj\Models\Songs.sort DESC')
                 ->execute();
 
             if ($songs && $songs->count() > 0) {
